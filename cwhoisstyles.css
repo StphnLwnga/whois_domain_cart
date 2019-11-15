@@ -1,0 +1,339 @@
+/*  .cwhoissearch is the search and suggest part of the cart (normal cart mode) */
+
+.cwhoissearch {
+	position: static;
+}
+p.cwhoissearch {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 8pt;
+	color: #330099;
+	font-weight: normal;
+	position: static;
+}
+small.cwhoissearch {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 8pt;
+	color: #330099;
+	font-weight: normal;
+	position: static;
+}
+input.cwhoissearch {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+select.cwhoissearch {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+table.cwhoissearch {
+    position: static;
+}
+/*  .cwhoischeckbox is the domain extension checkbox part of the cart (normal cart mode) */
+
+.cwhoischeckbox {
+	position: static;
+}
+p.cwhoischeckbox {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+input.cwhoischeckbox {
+	position: static;
+}
+table.cwhoischeckbox {
+    position: static;
+}
+/*  .cwhoisresults is the search results part of the cart (normal cart mode) */
+
+.cwhoisresults {
+	position: static;
+}
+p.cwhoisresults {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+b.cwhoisresults {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: bold;
+	position: static;
+}
+input.cwhoisresults {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+select.cwhoisresults {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+a.cwhoisresults {
+  position: static;
+}  
+table.cwhoisresults {
+    position: static;
+} 
+
+
+/*  .cwhoisshop is the current cart contents part (normal cart mode) */
+
+.cwhoisshop {
+	position: static;
+}
+p.cwhoisshop {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+b.cwhoisshop {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: bold;
+	position: static;
+}
+big.cwhoisshop {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14pt;
+	color: #330099;
+	font-weight: normal;
+	position: static;
+}
+input.cwhoisshop {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+hr.cwhoisshop {
+    position: static;	
+}
+table.cwhoisshop {
+    position: static;
+}
+/*  .cwhoisverify is the cart summary at the top of the contact form */
+
+.cwhoisverify {
+	position: static;
+}
+p.cwhoisverify {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+b.cwhoisverify {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: bold;
+	position: static;
+}
+big.cwhoisverify {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14pt;
+	color: #330099;
+	font-weight: normal;
+	position: static;
+}
+strong.cwhoisverify {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #FF0000;
+	font-weight: normal;
+	position: static;
+}
+input.cwhoisverify {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+hr.cwhoisverify {
+    position: static;
+}
+table.cwhoisverify {
+    position: static;
+}
+
+/*  .cwhoiscontact is the contact form */
+
+.cwhoiscontact {
+	position: static;
+}
+p.cwhoiscontact {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+b.cwhoiscontact {
+  position: static;
+}
+big.cwhoiscontact {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14pt;
+	color: #330099;
+	font-weight: normal;
+	position: static;
+}
+input.cwhoiscontact {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+select.cwhoiscontact {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+textarea.cwhoiscontact {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+a.cwhoiscontact {
+    position: static;
+}
+table.cwhoiscontact {
+    position: static;
+}
+
+/*  .cwhoislookup is the whois lookup  */
+
+.cwhoislookup {
+	position: static;
+}
+p.cwhoislookup {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+a.cwhoislookup {
+    position: static;
+}
+input.lookup {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+
+/* Simple hosting mode step 1*/
+
+.cwhoissimplestep1 {
+	position: static;
+}
+p.cwhoissimplestep1 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+input.cwhoissimplestep1 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+select.cwhoissimplestep1 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+table.cwhoissimplestep1 {
+    position: static;
+}
+
+/* Simple hosting mode step 2 (registering domain)*/
+
+.cwhoissimplestep2 {
+	position: static;
+}
+p.cwhoissimplestep2 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+a.cwhoissimplestep2 {
+	position: static;
+}
+input.cwhoissimplestep2 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+select.cwhoissimplestep2 {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+table.cwhoissimplestep2 {
+    position: static;
+}
+
+/* Simple hosting mode step 2b (existing domain)*/
+
+.cwhoissimplestep2b {
+	position: static;
+}
+p.cwhoissimplestep2b {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+input.cwhoissimplestep2b {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	color: #000000;
+	font-weight: normal;
+	position: static;
+}
+table.cwhoissimplestep2b {
+	position: static;
+}
