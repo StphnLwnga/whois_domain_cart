@@ -4,7 +4,7 @@
 // Search section
 $lang['CheckButton'] = "Check";
 // The next two tip lines can be left blank "" if you wish
-$lang['TipLine1'] = "Type domain name & select extensions required.";
+$lang['TipLine1'] = "Type your domain name. If no extension is selected, .com is assumed";
 $lang['TipLine2'] = "Tip: For hosting only type domain name & any extension.";
 
 // Results section headers and buttons
@@ -106,17 +106,18 @@ $lang['IdealBankList'] = "Select your bank";
 // 'name' and 'email' as they are used when sending the order confirmation.
 // If you require a password to be entered use filenames password and verifypassword.
 
-$cform[] = "name,Name,You must enter your name";
-$cform[] = "orgn,Organization,";
+$cform[] = "org,Organisation,";
+$cform[] = "fname,Name,Fill out the registration form to complete your purchase";
+$cform[] = "lname,Last Name,Enter your last name";
+$cform[] = "password,Password,Please enter a strong password";
+$cform[] = "verifypassword,Verify Password, Passwords do not match";
 $cform[] = "str1,Address,You must enter your address";
-$cform[] = "str2,,";
 $cform[] = "city,City,You must enter your city";
-$cform[] = "state,State,You must enter the state, county or province (or NA)";
-$cform[] = "zip,Zip,You must enter the zip or post code (or NA)";
 $cform[] = "country,Country,You must enter your country";
 $cform[] = "tel,Telephone,You must enter your telephone number";
-$cform[] = "fax,Fax,";
 $cform[] = "email,Email,You must enter your valid email address";
+$cform[] = "curr,Currency,Please select a currency,KES,USD";
+$cform[] = "total, Total, Enter Value";
 
 // Customer email
 // First line is the subject.

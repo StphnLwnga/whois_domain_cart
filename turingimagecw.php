@@ -1,6 +1,6 @@
 <?php
   @error_reporting(E_ERROR);
-  session_start();
+  // session_start();
   // If no session key then make a new random one
   if (!isset($_SESSION['ses_cwhoishashkey']))
     $_SESSION['ses_cwhoishashkey']=rand(1000000,9999999);
@@ -10,10 +10,10 @@
   for ($k=0;$k<5;$k++)
     $turingcode.=substr($validchars,mt_rand(0,25),1);
   if ($_SESSION['ses_cwhoisturingcode']!="")
-    $_SESSION['ses_cwhoispreviousturingcode']=$_SESSION['ses_cwhoisturingcode'];  
-  $_SESSION['ses_cwhoisturingcode']=$turingcode;  
-  // Choose a random background image  
-  $bg=mt_rand(1,4);    
+    $_SESSION['ses_cwhoispreviousturingcode']=$_SESSION['ses_cwhoisturingcode'];
+  $_SESSION['ses_cwhoisturingcode']=$turingcode;
+  // Choose a random background image
+  $bg=mt_rand(1,4);
   $image = imagecreatefromjpeg("turingbg$bg.jpg");
   // Select black text
   $txtcolor = imagecolorallocate ($image, 0, 0, 0);

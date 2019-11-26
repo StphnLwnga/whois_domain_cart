@@ -3,6 +3,8 @@
 // Copyright 2003 to 2018 Vibralogix
 // You are licensed to use this on one domain only
 // For further information email support@vibralogix.com
+// session_id();
+// session_start();
 @error_reporting(E_ERROR);
 include $FilePath."cwhois.php";
 if (!empty($_GET)) while(list($name, $value) = each($_GET)) $$name = $value;
@@ -10,6 +12,7 @@ if (!isset($_SESSION['numberofitems']))
 	$_SESSION['numberofitems']=0;
 if (!isset($_SESSION['numberremoved']))
 	$_SESSION['numberremoved']=0;
+$_SESSION['loginerrors'] = [];
 $numdomreg=count($register);
 $numdomtran=count($transfer);
 $numdomren=count($renew);
@@ -27,23 +30,23 @@ if (!isset($allowlookup))
 if (!isset($SimpleHostingOnly))
   $SimpleHostingOnly=false;
 if (!isset($DestroySession))
-  $DestroySession=false;  
+  $DestroySession=false;
 if (!isset($CheckoutTuring))
-  $CheckoutTuring=false;  
+  $CheckoutTuring=false;
 if (!isset($LookupTuring))
-  $LookupTuring=false;  
+  $LookupTuring=false;
 if (!isset($SearchTuring))
-  $SearchTuring=false;  
+  $SearchTuring=false;
 if (!isset($SimpleRegisterOnly))
   $SimpleRegisterOnly=false;
-  
+
 if (!isset($_SESSION['captchasearchcount']))
   $_SESSION['captchasearchcount']=0;
-if (!isset($_SESSION['captchasearchcheck']))  
+if (!isset($_SESSION['captchasearchcheck']))
   $_SESSION['captchasearchcheck']=false;
-if (!isset($_SESSION['captchasearchtime']))  
+if (!isset($_SESSION['captchasearchtime']))
   $_SESSION['captchasearchtime']=0;
-if (!isset($_SESSION['captchasearchspeed']))  
+if (!isset($_SESSION['captchasearchspeed']))
   $_SESSION['captchasearchspeed']=-1;
 
 if ($vendoremail!="")
@@ -69,24 +72,25 @@ if ($cwaction=="lookup")
 	print "<head>\n";
 	print "<title>Domain Lookup</title>\n";
 	print "</head>\n";
-	print "<body><div class=\"cwhoislookup\">\n";	
+	print "<body>\n";
+	print "<div class=\"cwhoislookup\">\n";
   if ($allowlookup)
 	  $i=cWhois($domain,"",$reg, $turing);
 	else
 	 $i=-1;
 	if ($i==-1)
-		print "Whois lookup disabled<br>";	   
+		print "Whois lookup disabled<br>";
 	if ($i==4)
 	{
 		print "<form method=\"GET\" action=\"cwhoiscart.php\">\n";
 		print "<input type=\"hidden\" name=\"domain\" value=\"".$domain."\">\n";
 		print "<input type=\"hidden\" name=\"cwaction\" value=\"lookup\">\n";
-	  print "<table class=\"cwhoislookup\"><tr>\n";	
+	  print "<table class=\"cwhoislookup\"><tr>\n";
 	  print "<td class=\"cwhoislookup\"><p class=\"cwhoislookup\">".$lang['TuringCode']."*</p></td>\n";
 	  print "<td class=\"cwhoislookup\"><input class=\"cwhoislookup\" type=\"text\" name=\"turing\" id=\"turing\" size=\"10\">&nbsp;<img class=\"cwhoislookup\" id=\"turingimage\" name=\"turingimage\" src=\"turingimagecw.php\" align=\"absmiddle\" width=\"60\" height=\"30\"><td class=\"cwhoislookup\"></tr>\n";
     print "<tr><td class=\"cwhoislookup\">&nbsp;</td><td class=\"cwhoislookup\"><input type=\"submit\" value=\"".$lang['Lookup']."\"></td></tr>\n";
 	  print "</table>\n";
-	  print "</form>\n";  		
+	  print "</form>\n";
 	}
 	if ($i==5)
 		print "Problem connecting with whois server<br>";
@@ -108,7 +112,7 @@ if ($cwaction=="lookup")
 	print "</div>\n";
 	print "</body>\n";
 	print "</html>\n";
-	exit;    
+	exit;
 }
 
 if ($cwhoismode==0)
@@ -182,7 +186,7 @@ if ($cwhoismode==0)
   var lang = []
   var numhost = <?php echo $numhost; ?>
 
-<?php  
+<?php
   for ($k=0;$k<count($register);$k++)
     print "register[".$k."]=\"".$register[$k]."\"\n";
   for ($k=0;$k<count($transfer);$k++)
@@ -213,18 +217,18 @@ function hostingplanchange(domain,ext,row)
   if ((count($registerspecial)==0) && (count($transferspecial)==0) && (count($renewspecial)==0))
     print "return\n";
   else
-  {  
+  {
   ?>
- 
+
   var menu1Obj =  document.getElementById("domainselectmenu"+row)
   var menu2Obj =  document.getElementById("hostingselectmenu"+row)
-  var menu1index = menu1Obj.selectedIndex  
+  var menu1index = menu1Obj.selectedIndex
   var menu2index = menu2Obj.selectedIndex
-  var menu1length = menu1Obj.length  
+  var menu1length = menu1Obj.length
   var plan = menu2Obj.options[menu2index].value
   if (numhost<1)
-    return  
-  ext=ext.toLowerCase()    
+    return
+  ext=ext.toLowerCase()
   // See what sevices listed in domain menu
   var nohostinglisted=false
   var registerlisted=false
@@ -234,13 +238,13 @@ function hostingplanchange(domain,ext,row)
   for (k=0;k<menu1length;k++)
   {
     val=menu1Obj.options[k].value
-    if (val==-1)  
+    if (val==-1)
       nohostinglisted=true
-    if ((val>=0) && (val<100))  
+    if ((val>=0) && (val<100))
       registerlisted=true;
-    if ((val>=100) && (val<200))  
+    if ((val>=100) && (val<200))
       transferlisted=true;
-    if ((val>=200) && (val<300))  
+    if ((val>=200) && (val<300))
       renewlisted=true;
   }
   // See if special prices set for each service for this domain extension and hosting plan
@@ -261,11 +265,11 @@ function hostingplanchange(domain,ext,row)
   if (nohostinglisted)
   {
     menu1Obj.options[optioncounter]=new Option(lang['HostingOnly'], '-1')
-    optioncounter++;    
+    optioncounter++;
   }
   if (registerlisted)
   {
-    pricesandperiods=registerprices.split(",") 
+    pricesandperiods=registerprices.split(",")
     periodparts=pricesandperiods[0].split(":")
     // Check for domain name length based pricing
     otherprice=""
@@ -293,13 +297,13 @@ function hostingplanchange(domain,ext,row)
       priceparts=pricesandperiods[1].split(":")
     for (k=0;k<periodparts.length;k++)
     {
-      menu1Obj.options[optioncounter]=new Option(lang['Register']+' '+periodparts[k]+' '+lang['Year']+' '+csymbol+priceparts[k]+csymbol2, k)        
+      menu1Obj.options[optioncounter]=new Option(lang['Register']+' '+periodparts[k]+' '+lang['Year']+' '+csymbol+priceparts[k]+csymbol2, k)
       optioncounter++
     }
   }
   if (transferlisted)
   {
-    pricesandperiods=transferprices.split(",") 
+    pricesandperiods=transferprices.split(",")
     periodparts=pricesandperiods[0].split(":")
     // Check for domain name length based pricing
     otherprice=""
@@ -327,13 +331,13 @@ function hostingplanchange(domain,ext,row)
       priceparts=pricesandperiods[1].split(":")
     for (k=0;k<periodparts.length;k++)
     {
-      menu1Obj.options[optioncounter]=new Option(lang['Transfer']+' '+periodparts[k]+' '+lang['Year']+' '+csymbol+priceparts[k]+csymbol2, k+100)        
+      menu1Obj.options[optioncounter]=new Option(lang['Transfer']+' '+periodparts[k]+' '+lang['Year']+' '+csymbol+priceparts[k]+csymbol2, k+100)
       optioncounter++
     }
   }
   if (renewlisted)
   {
-    pricesandperiods=renewprices.split(",") 
+    pricesandperiods=renewprices.split(",")
     periodparts=pricesandperiods[0].split(":")
     // Check for domain name length based pricing
     otherprice=""
@@ -361,7 +365,7 @@ function hostingplanchange(domain,ext,row)
       priceparts=pricesandperiods[1].split(":")
     for (k=0;k<periodparts.length;k++)
     {
-      menu1Obj.options[optioncounter]=new Option(lang['Renew']+' '+periodparts[k]+' '+lang['Year']+' '+csymbol+priceparts[k]+csymbol2, k+200)        
+      menu1Obj.options[optioncounter]=new Option(lang['Renew']+' '+periodparts[k]+' '+lang['Year']+' '+csymbol+priceparts[k]+csymbol2, k+200)
       optioncounter++
     }
   }
@@ -409,7 +413,7 @@ function getdomainprices(dataarray,dataarrayspecial,ext,hostid)
   return("")
 }
 
-<?php	
+<?php
 	print "// - JavaScript - -->\n";
 	print "</script>\n";
 }
@@ -420,7 +424,7 @@ if ($cwhoismode==1)
 	print "<!-- JavaScript\n";
 	print "function whois(domain)\n";
 	print "{\n";
-	print "  window.open(\"".$FilePath."cwhoiscart.php?cwaction=lookup&domain=\"+domain,\"whois\",\"width=500,height=300,resizable=yes,scrollbars=yes\")\n";
+	print "  window.open(\"".$FilePath."cwhoiscart.php?cwaction=lookup&domain=\"+domain,\"whois\",\"width=800,height=500,resizable=yes,scrollbars=yes\")\n";
 	print "}\n";
 	print "function Check2a(form)\n";
 	print "{\n";
@@ -603,12 +607,13 @@ if (($cwaction=="") && ($cwhoismode==1))
 {
 	$hstextcolor="#000000";
 	$hstextsize="12pt";
+
 	print "<div class=\"cwhoissimplestep1\"><form method=\"get\">\n";
   print "<input name=\"cwaction\" type=\"hidden\" value=\"hoststep2\">\n";
   if ($domain!="")
-    print "<input name=\"domain\" type=\"hidden\" value=\"$domain\">\n";    
+    print "<input name=\"domain\" type=\"hidden\" value=\"$domain\">\n";
   if ($dex!="")
-    print "<input name=\"dex\" type=\"hidden\" value=\"$dex\">\n";     
+    print "<input name=\"dex\" type=\"hidden\" value=\"$dex\">\n";
 	print "<table class=\"cwhoissimplestep1\">\n";
 	print "<tr>\n";
 	print "<td class=\"cwhoissimplestep1\"><p class=\"cwhoissimplestep1\">".$lang['SelectHosting']."</p></td>\n";
@@ -640,9 +645,9 @@ if (($cwaction=="") && ($cwhoismode==1))
   }
 	print "</select>\n";
 	print "</td>\n";
-	print "</tr>\n";	
+	print "</tr>\n";
   if (($SimpleHostingOnly==false) && ($SimpleRegisterOnly==false))
-  {	
+  {
   	print "<tr>\n";
 	  print "<td class=\"cwhoissimplestep1\"><p class=\"cwhoissimplestep1\">".$lang['LikeToRegister']."</p></td>\n";
 	  print "<td class=\"cwhoissimplestep1\"><p class=\"cwhoissimplestep1\"><input class=\"cwhoissimplestep1\" type=\"radio\" name=\"domexists\" value=\"register\" checked></p></td>\n";
@@ -658,7 +663,7 @@ if (($cwaction=="") && ($cwhoismode==1))
 	    print "<input type=\"hidden\" name=\"domexists\" value=\"exists\">\n";
 	  if ($SimpleRegisterOnly==true)
 	    print "<input type=\"hidden\" name=\"domexists\" value=\"register\">\n";
-	}	
+	}
 	print "<tr>\n";
 	print "<td class=\"cwhoissimplestep1\"><p class=\"cwhoissimplestep1\">&nbsp;</p></td>\n";
 	print "<td class=\"cwhoissimplestep1\" align=\"right\"><p><input class=\"cwhoissimplestep1\" type=\"submit\" name=\"formbutton1\" value=\"".$lang['ContinueButton']."\"></p></td>\n";
@@ -754,7 +759,7 @@ if (($cwaction=="hoststep2") && ($domexists=="register")&& ($cwhoismode==1))
 			print "<td class=\"cwhoissimplestep2\"><p class=\"cwhoissimplestep2\">\n";
       print "<select class=\"cwhoissimplestep2\" size=\"1\" name=\"r1\">\n";
       // We need to add an option for each registration period
-      strtok(getdomainprices($register,$registerspecial,$x1,$h1),",");    
+      strtok(getdomainprices($register,$registerspecial,$x1,$h1),",");
       $temp=strtok(","); // Get reg period string
       $regperiods=explode(":",$temp);
       $temp=strtok(","); // Get reg prices for each period
@@ -839,7 +844,7 @@ if (($cwaction=="hoststep2") && ($domexists=="register")&& ($cwhoismode==1))
         if ($transfersupported>=0)
         {
 	        // We need to add an option for each registration period
-          strtok(getdomainprices($transfer,$transferspecial,$x1,$h1),",");    
+          strtok(getdomainprices($transfer,$transferspecial,$x1,$h1),",");
 	        $temp=strtok(","); // Get reg period string
 	        $regperiods=explode(":",$temp);
 	        $temp=strtok(","); // Get transfer prices for each period
@@ -868,7 +873,7 @@ if (($cwaction=="hoststep2") && ($domexists=="register")&& ($cwhoismode==1))
         if ($renewsupported>=0)
         {
 	        // We need to add an option for each registration period
-          strtok(getdomainprices($renew,$renewspecial,$x1,$h1),",");    
+          strtok(getdomainprices($renew,$renewspecial,$x1,$h1),",");
 	        $temp=strtok(","); // Get reg period string
 	        $regperiods=explode(":",$temp);
 	        $temp=strtok(","); // Get transfer prices for each period
@@ -965,7 +970,7 @@ if (($cwaction=="hoststep2") && ($domexists=="exists")&& ($cwhoismode==1))
   if ($domain!="")
     $d1=$domain;
   if ($dex!="")
-    $d1=$domain.$dex;  
+    $d1=$domain.$dex;
 	$hstextcolor="#000000";
 	$hstextsize="12pt";
 	print "<div class=\"cwhoissimplestep2b\"><form method=\"get\">\n";
@@ -1048,7 +1053,7 @@ if (($cwaction=="add") || ($cwaction=="addout"))
 				if (($$rvar>-1) && ($$rvar<100))
 				{
 					$regtype="R"; // Register domain
-          strtok(getdomainprices($register,$registerspecial,$$xvar,$$hvar),",");    			
+          strtok(getdomainprices($register,$registerspecial,$$xvar,$$hvar),",");
 					$temp=strtok(","); // Get reg period string
 					$regperiods=explode(":",$temp);
 					$regperiod=$regperiods[$$rvar];
@@ -1074,7 +1079,7 @@ if (($cwaction=="add") || ($cwaction=="addout"))
 				if (($$rvar>=100) && ($$rvar<200))
 				{
 					$regtype="T"; // Transfer domain
-          strtok(getdomainprices($transfer,$transferspecial,$$xvar,$$hvar),",");    			
+          strtok(getdomainprices($transfer,$transferspecial,$$xvar,$$hvar),",");
 					$temp=strtok(","); // Get reg period string
 					$regperiods=explode(":",$temp);
 					$regperiod=$regperiods[$$rvar-100];
@@ -1100,7 +1105,7 @@ if (($cwaction=="add") || ($cwaction=="addout"))
 				if (($$rvar>=200) && ($$rvar<300))
 				{
 					$regtype="N"; // Renew domain
-          strtok(getdomainprices($renew,$renewspecial,$$xvar,$$hvar),",");    			
+          strtok(getdomainprices($renew,$renewspecial,$$xvar,$$hvar),",");
 					$temp=strtok(","); // Get reg period string
 					$regperiods=explode(":",$temp);
 					$regperiod=$regperiods[$$rvar-200];
@@ -1198,7 +1203,7 @@ if (($cwaction=="check") || ($cwaction=="remove") || ($cwaction=="add")  || (($c
 	    if ($dropdownsearch)
 	    {
 	      $domain=$domain.$dropdownext;
-	    }	    
+	    }
 	  	$found=0;
 	  	// Try to get domain extension if one is typed
 	  	// Treat .name slightly differently
@@ -1258,7 +1263,7 @@ if (($cwaction=="check") || ($cwaction=="remove") || ($cwaction=="add")  || (($c
 	// Create table with one checkbox per domain extension
 	$twidth=$columns*120;
 	if ($dropdownsearch)
-	  $twidth=$twidth+100;	
+	  $twidth=$twidth+100;
 	print("<div class=\"cwhoissearch\">\n");
 	if (($cwaction=="check") && ($SearchTuring) && ($_SESSION['captchasearchcheck']))
   {
@@ -1282,14 +1287,14 @@ if (($cwaction=="check") || ($cwaction=="remove") || ($cwaction=="add")  || (($c
     {
       $_SESSION['captchasearchcount']=0;
 //      $_SESSION['captchasearchcheck']=false;
-    }  
+    }
   }
   if ($cwaction=="check")
-    $_SESSION['captchasearchcount']++;      
+    $_SESSION['captchasearchcount']++;
 	print("<form name=\"searchform\" method=\"get\" OnSubmit=\"return CheckIt(this);\">\n");
 	print("<table class=\"cwhoissearch\">\n");
 	print("<tr>\n");
-	print("<td  class=\"cwhoissearch\"><small class=\"cwhoissearch\">\n");  
+	print("<td  class=\"cwhoissearch\"><small class=\"cwhoissearch\">\n");
   $showsearchturing=false;
   if ($SearchTuring)
   {
@@ -1311,7 +1316,9 @@ if (($cwaction=="check") || ($cwaction=="remove") || ($cwaction=="add")  || (($c
     print("<input class=\"cwhoissearch\" type=\"text\" name=\"turing\" id=\"turing\" size=\"3\">&nbsp;<img class=\"cwhoiscontact\" id=\"turingimage\" name=\"turingimage\" src=\"".$FilePath."turingimagecw.php\" align=\"absmiddle\" width=\"60\" height=\"30\"><br><br>\n");
   }
   else
-    $_SESSION['captchasearchcheck']=false;  
+    $_SESSION['captchasearchcheck']=false;
+  print "<br/></br>";
+  print "<br/></br>";
   if ($lang['TipLine1']!="")
 	  print($lang['TipLine1']."<BR>\n");
   if ($lang['TipLine2']!="")
@@ -1328,7 +1335,7 @@ if (($cwaction=="check") || ($cwaction=="remove") || ($cwaction=="add")  || (($c
     print ("<select name=\"dropdownext\" class=\"cwhoissearch\">\n");
     for ($k=1;$k<=$numdomreg;$k++)
     {
-      $dt=strtok($register[$k-1],",");    
+      $dt=strtok($register[$k-1],",");
       print ("<option value=\"$dt\"");
       if ($domainext==$dt)
         print " selected ";
@@ -1339,13 +1346,13 @@ if (($cwaction=="check") || ($cwaction=="remove") || ($cwaction=="add")  || (($c
       print ("<option value=\"\"");
       if (($domainext=="") && ($cwaction=="check"))
         print " selected ";
-      print (">All</option>\n");	    
+      print (">All</option>\n");
 	  }
-    print ("</select>&nbsp\n");	  
+    print ("</select>&nbsp\n");
 	  print("<input type=\"submit\" name=\"Check\" value=\"".$lang['CheckButton']."\" class=\"cwhoissearch\">\n");
 	}
 	else
-	{	
+	{
 	  print("<input type=\"text\" name=\"domain\" value=\"$domain$domainext\"size=\"30\" class=\"cwhoissearch\">&nbsp;&nbsp;<input type=\"submit\" name=\"Check\" value=\"".$lang['CheckButton']."\" class=\"cwhoissearch\">\n");
 	}
 	print("</td>\n");
@@ -1440,7 +1447,7 @@ if ($cwaction=="check")
 {
   if ($_SESSION['captchasearchtime']>0)
     $_SESSION['captchasearchspeed']=time()-$_SESSION['captchasearchtime'];
-  $_SESSION['captchasearchtime']=time();    
+  $_SESSION['captchasearchtime']=time();
 	$crtextcolor="#000000";
 	$crtextsize="10pt";
 	if ($spacetohyphen==true)
@@ -1454,7 +1461,7 @@ if ($cwaction=="check")
 	print("<td   class=\"cwhoisresults\">\n");
 	print("<b class=\"cwhoisresults\">".$lang['Domain']."</b>");
 	print("</td>\n");
-	
+
 	print("<td   class=\"cwhoisresults\">\n");
 	print("<b class=\"cwhoisresults\">".$lang['Available']."</b>");
 	print("</td>\n");
@@ -1462,9 +1469,9 @@ if ($cwaction=="check")
 	print("<td   class=\"cwhoisresults\">\n");
 	print("<b class=\"cwhoisresults\">".$lang['DomainOpt']."</b>");
 	print("</td>\n");
-	
+
   if ($NarrowCart!=true)
-  {	
+  {
   	print("<td   class=\"cwhoisresults\">\n");
   	if ($numhost>0)
   		print("<b class=\"cwhoisresults\">".$lang['HostingOpt']."</b>");
@@ -1635,7 +1642,7 @@ function displaydomain($k,$domain,$dt,$checkbuy)
   if ($i==5)
     print($lang['WhoisProblem']);
   print("</p></td>\n");
-  
+
   // Domain Options column
   print("<td   class=\"cwhoisresults\">\n");
   if (($i==0) && ($registersupported>=0))
@@ -1646,10 +1653,10 @@ function displaydomain($k,$domain,$dt,$checkbuy)
     // We need to add an option for each registration period
     // See if special pricing required
     if (($AllowNoHosting) || ($numhost<1))
-      strtok($register[$registersupported],",");    
+      strtok($register[$registersupported],",");
     else
     {
-      strtok(getdomainprices($register,$registerspecial,$dt,0),",");    
+      strtok(getdomainprices($register,$registerspecial,$dt,0),",");
     }
     $temp=strtok(","); // Get reg period string
     $regperiods=explode(":",$temp);
@@ -1673,9 +1680,9 @@ function displaydomain($k,$domain,$dt,$checkbuy)
     for ($j=0;$j<count($regperiods);$j++)
     {
       if ($j==0)
-        print "<option selected value=\"$j\" >".$lang['Register']." $regperiods[$j] ".$lang['Year']." $csymbol$regprices[$j]$csymbol2</option>\n";
+        print "<option selected value=\"$j\" >".$lang['Register']." $regperiods[$j] ".$lang['Year']."</option>\n";
       else
-        print "<option value=\"$j\">".$lang['Register']." $regperiods[$j] ".$lang['Year']." $csymbol$regprices[$j]$csymbol2</option>\n";
+        print "<option value=\"$j\">".$lang['Register']." $regperiods[$j] ".$lang['Year']."</option>\n";
     }
     print "</select>\n";
   }
@@ -1701,7 +1708,7 @@ function displaydomain($k,$domain,$dt,$checkbuy)
       $premcost=$Reg[Count($Reg)-1];
       eval("\$premsell=".$premcost.$premium.";");
       $premsell=sprintf("%01.".$decimalplaces."f",$premsell);
-      print "<option selected value=premium$premsell>".$lang['Register']." 1 ".$lang['Year']." $csymbol$premsell$csymbol2</option>\n";
+      print "<option selected value=premium$premsell>".$lang['Register']." 1 ".$lang['Year']."</option>\n";
     }
     print "</select>\n";
   }
@@ -1727,8 +1734,8 @@ function displaydomain($k,$domain,$dt,$checkbuy)
       // See if special pricing required
       if ($numhost<1)
         strtok($transfer[$transfersupported],",");
-      else   
-        strtok(getdomainprices($transfer,$transferspecial,$dt,0),",");    
+      else
+        strtok(getdomainprices($transfer,$transferspecial,$dt,0),",");
       $temp=strtok(","); // Get transfer period string
       $regperiods=explode(":",$temp);
       $temp=strtok(","); // Get transfer prices for each period
@@ -1751,7 +1758,7 @@ function displaydomain($k,$domain,$dt,$checkbuy)
       for ($j=0;$j<count($regperiods);$j++)
       {
         $t=$j+100;
-        print "<option value=\"$t\">".$lang['Transfer']." $regperiods[$j] ".$lang['Year']." $csymbol$regprices[$j]$csymbol2</option>\n";
+        print "<option value=\"$t\">".$lang['Transfer']." $regperiods[$j] ".$lang['Year']."</option>\n";
       }
     }
     // We need to add an option for each registration period if renew supported
@@ -1760,8 +1767,8 @@ function displaydomain($k,$domain,$dt,$checkbuy)
       // See if special pricing required
       if ($numhost<1)
         strtok($renew[$renewsupported],",");
-      else   
-        strtok(getdomainprices($renew,$renewspecial,$dt,0),",");          
+      else
+        strtok(getdomainprices($renew,$renewspecial,$dt,0),",");
       $temp=strtok(","); // Get renew period string
       $regperiods=explode(":",$temp);
       $temp=strtok(","); // Get renew prices for each period
@@ -1784,7 +1791,7 @@ function displaydomain($k,$domain,$dt,$checkbuy)
       for ($j=0;$j<count($regperiods);$j++)
       {
         $t=$j+200;
-        print "<option value=\"$t\">".$lang['Renew']." $regperiods[$j] ".$lang['Year']." $csymbol$regprices[$j]$csymbol2</option>\n";
+        print "<option value=\"$t\">".$lang['Renew']." $regperiods[$j] ".$lang['Year']."</option>\n";
       }
     }
     print "</select>\n";
@@ -1829,7 +1836,7 @@ function displaydomain($k,$domain,$dt,$checkbuy)
       if ($AllowNoHosting==true)
       {
 	      if ((($i==0) && ($registersupported!=-1)) || (($i==6) && ($premium!="")))
-	        print "<option value=\"-1\">".$lang['NoHosting']."</option>\n";
+	        print "<option disabled value=\"-1\">".$lang['NoHosting']."</option>\n";
       }
       // We need to add an option for each hosting package
       for ($j=0;$j<$numhost;$j++)
@@ -1852,7 +1859,7 @@ function displaydomain($k,$domain,$dt,$checkbuy)
       if ($AllowNoHosting==true)
       {
 	      if (($transfersupported!=-1) || ($renewsupported!=-1))
-	        print "<option value=\"-1\">".$lang['NoHosting']."</option>\n";
+	        print "<option disabled value=\"-1\">".$lang['NoHosting']."</option>\n";
       }
       // We need to add an option for each hosting package
       for ($j=0;$j<$numhost;$j++)
@@ -1919,7 +1926,7 @@ function displaydomain($k,$domain,$dt,$checkbuy)
   if (($i==0) && ($registersupported>-1))
     $allowregistration=1;
   if (($i==6) && ($registersupported>-1))
-    $allowregistration=1;  
+    $allowregistration=1;
   if ($allowbuy==1)
   {
     $canbuy=1;
@@ -1932,10 +1939,10 @@ function displaydomain($k,$domain,$dt,$checkbuy)
     print("&nbsp;");
   print("</td>\n");
   print("</tr>\n");
-  
+
   if ($NarrowCart)
-    print "</tr>\n";  
-  
+    print "</tr>\n";
+
   return($canbuy);
 }
 
@@ -2054,7 +2061,7 @@ if (($cwaction=="check") || ($cwaction=="add") || ($cwaction=="remove") || (($cw
 	      print "<input class=\"cwhoisshop\" name=\"rem$k\" type=\"checkbox\" value=\"ON\">\n";
 	      print("</td>\n");
         if ($NarrowCart)
-          print "</tr>\n";  
+          print "</tr>\n";
 	      print("</tr>");
 	      $total=$total+$subtotal;
 	    }
@@ -2101,7 +2108,7 @@ if (($cwaction=="order") &&  ($cfcouponcode!=""))
     $cwaction="checkout";
   }
 }
-  
+
 // If checkout form submitted with turing code then verify it is correct. If not then redisplay checkout
 $checkoutturingerror=false;
 if (($cwaction=="order") && ($CheckoutTuring))
@@ -2168,18 +2175,18 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
 	  print("</TR>\n");
 	  print("</table>\n");
 	  print("<hr class=\"cwhoisverify\">");
-	  
+
 	  print("</form></div>\n");
 	}
 	if ($paymenttarget!="")
 	  print "<div class=\"cwhoiscontact\"><form action=\"".$paymentpage."\" target=\"".$paymenttarget."\" method=\"get\" name=\"contactform\" onSubmit=\"return validate(this)\">\n";
 	else
-	  print "<div class=\"cwhoiscontact\"><form action=\"".$paymentpage."\" method=\"get\" name=\"contactform\" id=\"contactform\" onSubmit=\"return validate(this)\">\n";	  
+	  print "<div class=\"cwhoiscontact\"><form action=\"".$paymentpage."\" method=\"get\" name=\"contactform\" id=\"contactform\" onSubmit=\"return validate(this)\">\n";
 	print "<input name=\"cwaction\" type=\"hidden\" value=\"order\">\n";
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Replacement form fields and validation can go here. Delete all lines in this
-// section and replace with you own form fields. Don't include the <form> or
-// </form> though.
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Replacement form fields and validation can go here. Delete all lines in this
+	// section and replace with you own form fields. Don't include the <form> or
+	// </form> though.
 	print "<script language=\"JavaScript\">\n";
 	print "<!-- JavaScript\n";
 	print "  function validate(form)\n";
@@ -2237,22 +2244,22 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
 	{
   	$formv=explode(",",$cform[$k]);
     if (strcasecmp($formv[0],"ra_paymenttype")==0)
-      $ra_paymenttypefield=true;		
+      $ra_paymenttypefield=true;
     if (strcasecmp($formv[0],"password")==0)
-      $passfield=true; 	
+      $passfield=true;
     if (strcasecmp($formv[0],"verifypassword")==0)
     {
       $verifypassfield=true;
-      $verifypasswordmsg=$formv[2]; 	
-    }      
-	}  
-	if ($ra_paymenttypefield)	  
+      $verifypasswordmsg=$formv[2];
+    }
+	}
+	if ($ra_paymenttypefield)
 	{
     print "var paytype=form.cfra_paymenttype[getSelectedButton(form.cfra_paymenttype)].value\n";
     print "paytype=paytype.toLowerCase();\n";
-	}  
+	}
   else
-    print "var paytype=\"\"\n";    
+    print "var paytype=\"\"\n";
 	for ($k=0;$k<count($cform);$k++)
 	{
   	$formv=explode(",",$cform[$k]);
@@ -2268,9 +2275,9 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
     			print "  return(false)\n";
     			print "}\n";
         }
-        break;  
+        break;
       case "cc_name":
-        if ($formv[2]!="") 
+        if ($formv[2]!="")
         {
         	print "if ((paytype==\"credit card\") || (paytype==\"\"))\n";
         	print "{\n";
@@ -2280,10 +2287,10 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       		print "  form.cf$formv[0].focus()\n";
       		print "  return(false)\n";
       		print "}\n";
-      		print "}\n";      		
+      		print "}\n";
         }
         break;
-      case "cc_number": 
+      case "cc_number":
         if ($formv[2]!="")
         {
         	print "if ((paytype==\"credit card\") || (paytype==\"\"))\n";
@@ -2294,7 +2301,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
     			print "  form.cfcc_number.focus()\n";
     			print "  return(false)\n";
     			print "}\n";
-      		print "}\n";      		
+      		print "}\n";
         }
         break;
       case "cc_expiry":
@@ -2307,11 +2314,11 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
     			print "    alert(\"$formv[2]\")\n";
           print "    form.cfcc_expiry.focus()\n";
           print "    return (false)\n";
-          print "  }  \n";      
-      		print "}\n";      		
+          print "  }  \n";
+      		print "}\n";
         }
         break;
-      case "cc_securitycode":  
+      case "cc_securitycode":
         if ($formv[2]!="")
         {
         	print "if ((paytype==\"credit card\") || (paytype==\"\"))\n";
@@ -2321,8 +2328,8 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
     			print "    alert(\"$formv[2]\")\n";
           print "    form.cfcc_securitycode.focus()\n";
           print "    return (false)\n";
-          print "  }  \n";      
-      		print "}\n";      		
+          print "  }  \n";
+      		print "}\n";
         }
         break;
       case "cc_start":
@@ -2337,9 +2344,9 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
     			print "      alert(\"$formv[2]\")\n";
           print "      form.cfcc_start.focus()\n";
           print "      return (false)\n";
-          print "    }\n";      
-          print "  }\n";      
-      		print "}\n";      		
+          print "    }\n";
+          print "  }\n";
+      		print "}\n";
         }
         break;
       case "cc_issuenumber":
@@ -2353,7 +2360,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       		print "  form.cf$formv[0].focus()\n";
       		print "  return(false)\n";
       		print "}\n";
-      		print "}\n";      		
+      		print "}\n";
         }
         break;
       case "cc_cardtype":
@@ -2366,12 +2373,12 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       		print "  alert(\"$formv[2]\")\n";
       		print "  form.cf$formv[0].focus()\n";
       		print "  return(false)\n";
-      		print "}\n";            
-      		print "}\n";      		
+      		print "}\n";
+      		print "}\n";
         }
         break;
       case "ba_accountname":
-        if ($formv[2]!="") 
+        if ($formv[2]!="")
         {
         	print "if ((paytype==\"bank transfer\") || (paytype==\"\"))\n";
         	print "{\n";
@@ -2381,11 +2388,11 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       		print "  form.cf$formv[0].focus()\n";
       		print "  return(false)\n";
       		print "}\n";
-      		print "}\n";      		
+      		print "}\n";
         }
         break;
       case "ba_bankname":
-        if ($formv[2]!="") 
+        if ($formv[2]!="")
         {
         	print "if ((paytype==\"bank transfer\") || (paytype==\"\"))\n";
         	print "{\n";
@@ -2395,11 +2402,11 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       		print "  form.cf$formv[0].focus()\n";
       		print "  return(false)\n";
       		print "}\n";
-      		print "}\n";      		
+      		print "}\n";
         }
         break;
       case "ba_accountnumber":
-        if ($formv[2]!="") 
+        if ($formv[2]!="")
         {
         	print "if ((paytype==\"bank transfer\") || (paytype==\"\"))\n";
         	print "{\n";
@@ -2409,11 +2416,11 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       		print "  form.cf$formv[0].focus()\n";
       		print "  return(false)\n";
       		print "}\n";
-      		print "}\n";      		
+      		print "}\n";
         }
         break;
       case "ba_accounttype":
-        if ($formv[2]!="") 
+        if ($formv[2]!="")
         {
         	print "if ((paytype==\"bank transfer\") || (paytype==\"\"))\n";
         	print "{\n";
@@ -2423,11 +2430,11 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       		print "  form.cf$formv[0].focus()\n";
       		print "  return(false)\n";
       		print "}\n";
-      		print "}\n";      		
+      		print "}\n";
         }
         break;
       case "ba_branchcode":
-        if ($formv[2]!="") 
+        if ($formv[2]!="")
         {
         	print "if ((paytype==\"bank transfer\") || (paytype==\"\"))\n";
         	print "{\n";
@@ -2437,7 +2444,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       		print "  form.cf$formv[0].focus()\n";
       		print "  return(false)\n";
       		print "}\n";
-      		print "}\n";      		
+      		print "}\n";
         }
         break;
       default:
@@ -2450,7 +2457,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       			print "  alert(\"$formv[2]\")\n";
       			print "  form.cf$formv[0].focus()\n";
       			print "  return(false)\n";
-      			print "}\n";            
+      			print "}\n";
           }
           if (substr($formv[0],0,3)=="dm_")
           {
@@ -2459,7 +2466,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       			print "  alert(\"$formv[2]\")\n";
       			print "  form.cf$formv[0].focus()\n";
       			print "  return(false)\n";
-      			print "}\n";            
+      			print "}\n";
           }
           if ((substr($formv[0],0,3)!="cb_") && (substr($formv[0],0,3)!="dm_") && (substr($formv[0],0,3)!="ra_"))
           {
@@ -2470,7 +2477,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
       			print "  return(false)\n";
       			print "}\n";
           }
-        }          
+        }
     }
 	}
 	// If password and verify password fields defined then check they match
@@ -2491,7 +2498,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
 		print "  alert(\"".$lang['TuringCodeRequired']."\")\n";
 		print "  form.turing.focus()\n";
 		print "  return(false)\n";
-	  print "}\n";	  
+	  print "}\n";
 	}
 	print "return(true)\n";
 	print "}\n";
@@ -2547,11 +2554,11 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
   print "  x = s.charAt(i);\n";
   print "  if (v.indexOf(x,0) != -1)\n";
   print "  CC += x;\n";
-  print "}\n";  
+  print "}\n";
   print "  if (CC.length > 19)\n";
-  print "       return (false);\n";  
+  print "       return (false);\n";
   print "  if (CC.length < 13)\n";
-  print "       return (false);\n";  
+  print "       return (false);\n";
   print "  sum = 0; mul = 1; l = CC.length;\n";
   print "  for (i = 0; i < l; i++) \n";
   print "  {\n";
@@ -2571,7 +2578,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
   print "  else\n";
   print "    return (false);\n";
   print "}\n";
-    
+
   print "function validateDateMMYY(s,first,last)\n";
   print "{\n";
   print "  var p=-1;\n";
@@ -2591,7 +2598,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
   print "  if (m.length<2)\n";
   print "    m=\"0\".concat(m)\n";
   print "  if (y.length<2)\n";
-  print "    y=\"0\".concat(y)\n";      
+  print "    y=\"0\".concat(y)\n";
   print "  var min=first.substring(3,5)+first.substring(0,2)\n";
   print "  var max=last.substring(3,5)+last.substring(0,2)\n";
   print "  var comps=y.concat(m)\n";
@@ -2626,7 +2633,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
   print "	  return(false)\n";
   print "  }\n";
   print "  return(true)\n";
-  print "}\n";  
+  print "}\n";
   print "function getSelectedButton(buttonGroup)\n";
   print "  {\n";
   print "		for (var i=0; i<buttonGroup.length; i++)\n";
@@ -2679,9 +2686,9 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
     	print "  document.contactform.cfba_accounttype.disabled=banktransferdisabled\n";
     if (strcasecmp($formv[0],"ba_branchcode")==0)
     	print "  document.contactform.cfba_branchcode.disabled=banktransferdisabled\n";
-	}  
+	}
 	print "}\n";
-  
+
 	print "\n";
 	print "  // - JavaScript - -->\n";
 	print "  </script>\n";
@@ -2764,151 +2771,200 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
 	  print"</table>\n";
 	  print"<BR>";
 	}
-
 	print "  <table class=\"cwhoiscontact\" >\n";
 	print "  <tr>\n";
-	print "  <td   class=\"cwhoiscontact\" colspan=\"2\"><big class=\"cwhoiscontact\">".$lang['ContactDetails']."</big></td>\n";
-//	print "  <td   class=\"cwhoiscontact\"><p class=\"cwhoiscontact\">&nbsp;</p></td>\n";
+	if (!isset($_SESSION['loggedIn'])) print "  <td   class=\"cwhoiscontact\" colspan=\"2\"><big class=\"cwhoiscontact text-center\">".$lang['ContactDetails']."</big></td>\n";
+	//	print "  <td   class=\"cwhoiscontact\"><p class=\"cwhoiscontact\">&nbsp;</p></td>\n";
 	print "  </tr>\n";
 
   // Create table row and text input for each form field
-	for ($k=0;$k<count($cform);$k++)
+	if (!$_SESSION['loggedIn'])
 	{
-  	$formv=explode(",",$cform[$k]);
-  	$varval="cf".$formv[0];
-    if (($checkoutcouponerror>0) && ($formv[0]=="couponcode"))
-    {
-      print "  <tr>\n";
-	    print "  <td   class=\"cwhoiscontact\">&nbsp;</td><td   class=\"cwhoiscontact\"><p class=\"cwhoiscontact\" style=\"color:#FF0000\">";
-	    if ($checkoutcouponerror==1)
-	      print $lang['CouponNotValid'];
-	    if ($checkoutcouponerror==2)
-	      print $lang['CouponExpired'];    	      
-	    print "</p></td>\n";
-	    print "  </tr>\n";
-    }  	
-		print "  <tr>\n";
-		print "  <td   class=\"cwhoiscontact\"><p class=\"cwhoiscontact\">\n";
-    print "  ".$formv[1];
-    if ($formv[2]!="")
-      print "*";
-    print "</p></td>";  
-	  switch (strtolower($formv[0]))  
-	  {      
-	    case "password":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"password\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;
-	    case "verifypassword":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"password\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;
-	    case "cc_number":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"23\" size=\"35\"></td>\n";
-		    break;		    
-	    case "cc_expiry":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"5\" size=\"5\"></td>\n";
-		    break;		    
-	    case "cc_start":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"5\" size=\"5\"></td>\n";
-		    break;		    
-	    case "cc_securitycode":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"4\" size=\"5\"></td>\n";
-		    break;		    
-	    case "cc_name":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;		    
-	    case "cc_issuenumber":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;		    
-	    case "cc_cardtype":
-        print "<td   class=\"cwhoiscontact\"><select class=\"cwhoiscontact\" name=\"cf".$formv[0]."\">\n";
-        for ($j=3;$j<count($formv);$j++)
-        {
-          print "<option value=\"".$formv[$j]."\"";
-          if ($$varval==$formv[$j]) print " selected";          
-          print ">".$formv[$j]."</option>\n";
-        }
-        print "</select></td>\n";	        
-		    break;		    
-	    case "ba_accountname":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;		    
-	    case "ba_bankname":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;		    
-	    case "ba_accountnumber":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;		    
-	    case "ba_accounttype":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;		    
-	    case "ba_branchcode":
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;	
-	    case "ra_paymenttype":
-  		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"radio\" name=\"cf".$formv[0]."\" value=\"".$formv[3]."\"";
-          if (($checkoutturingerror==true) || ($checkoutcouponerror>0))
-          {
-  		    if ($$varval==$formv[3])
-  		      print " checked=\"checked\" ";
-          }
-          else  
-          {
-  		    if (strtolower($formv[4])=="checked")
-  		      print " checked=\"checked\" ";
-          }  		      
-  		    print " onClick=\"paymenttypeclicked();\"></td>\n";		
-		    break;	
-	    default:
-	      if (substr($formv[0],0,3)=="ta_")
-	  	    print "<td   class=\"cwhoiscontact\"><textarea class=\"cwhoiscontact\" name=\"cf".$formv[0]."\" cols=\"40\" rows=\"5\">".$$varval."</textarea></td>\n";		
-	      if (substr($formv[0],0,3)=="cb_")
-	      {
-  		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"checkbox\" name=\"cf".$formv[0]."\" value=\"".$formv[3]."\"";
-          if (($checkoutturingerror==true) || ($checkoutcouponerror>0))
-          {
-  		      if ($$varval==$formv[3])
-  		        print " checked=\"checked\" ";
-          }
-          else
-          {
-  		      if (strtolower($formv[4])=="checked")
-  		        print " checked=\"checked\" ";
-          }          
-  		    print "></td>\n";		
-				}  
-	      if (substr($formv[0],0,3)=="ra_")
-	      {
-  		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"radio\" name=\"cf".$formv[0]."\" value=\"".$formv[3]."\"";
-          if (($checkoutturingerror==true) || ($checkoutcouponerror>0))
-          {
-  		    if ($$varval==$formv[3])
-  		      print " checked=\"checked\" ";
-          }
-          else
-          {
-  		      if (strtolower($formv[4])=="checked")
-  		        print " checked=\"checked\" ";
-          }          
-  		    print "></td>\n";		
-				}  
-	      if (substr($formv[0],0,3)=="dm_")
-	      {
-          print "<td   class=\"cwhoiscontact\"><select class=\"cwhoiscontact\" name=\"cf".$formv[0]."\">\n";
-          for ($j=3;$j<count($formv);$j++)
-          {
-            print "<option value=\"".$formv[$j]."\"";            
-            if ($$varval==$formv[$j]) print " selected";             
-            print ">".$formv[$j]."</option>\n";
-          }
-          print "</select></td>\n";	        
-	      }
-	      if ((substr($formv[0],0,3)!="ta_") && (substr($formv[0],0,3)!="cb_") && (substr($formv[0],0,3)!="ra_") && (substr($formv[0],0,3)!="dm_"))
-		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
-		    break;		  
-	  }  
-		print "  </tr>\n";
+	 for ($k=0;$k<count($cform);$k++) {
+	  	$formv=explode(",",$cform[$k]);
+	  	$varval="cf".$formv[0];
+	    if (($checkoutcouponerror>0) && ($formv[0]=="couponcode"))
+	    {
+	      print "  <tr>\n";
+		    print "  <td   class=\"cwhoiscontact\">&nbsp;</td><td   class=\"cwhoiscontact\"><p class=\"cwhoiscontact\" style=\"color:#FF0000\">";
+		    if ($checkoutcouponerror==1)
+		      print $lang['CouponNotValid'];
+		    if ($checkoutcouponerror==2)
+		      print $lang['CouponExpired'];
+		    print "</p></td>\n";
+		    print "  </tr>\n";
+	    }
+			print "  <tr>\n";
+			print "  <td   class=\"cwhoiscontact\"><p class=\"cwhoiscontact\">\n";
+	    print "  ".$formv[1];
+	    if ($formv[2]!="")
+	      print "*";
+	    print "</p></td>";
+		  switch (strtolower($formv[0]))
+		  {
+				case "total":
+					print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" disabled type=\"text\" name=\"cf".$formv[0]."\" value=\"$total\"></td>\n";
+					break;
+				case "curr":
+					print "<td   class=\"cwhoiscontact\"><select class=\"cwhoiscontact\" name=\"cf".$formv[0]."\">\n";
+					for ($j=3;$j<count($formv);$j++)
+					{
+						print "<option value=\"".$formv[$j]."\"";
+						if ($$varval==$formv[$j]) print " selected";
+						print ">".$formv[$j]."</option>\n";
+					}
+					print "</select></td>\n";
+					break;
+		    case "password":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"password\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		    case "verifypassword":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"password\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		    case "cc_number":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"23\" size=\"35\"></td>\n";
+			    break;
+		    case "cc_expiry":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"5\" size=\"5\"></td>\n";
+			    break;
+		    case "cc_start":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"5\" size=\"5\"></td>\n";
+			    break;
+		    case "cc_securitycode":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"4\" size=\"5\"></td>\n";
+			    break;
+		    case "cc_name":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		    case "cc_issuenumber":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		    case "cc_cardtype":
+	        print "<td   class=\"cwhoiscontact\"><select class=\"cwhoiscontact\" name=\"cf".$formv[0]."\">\n";
+	        for ($j=3;$j<count($formv);$j++)
+	        {
+	          print "<option value=\"".$formv[$j]."\"";
+	          if ($$varval==$formv[$j]) print " selected";
+	          print ">".$formv[$j]."</option>\n";
+	        }
+	        print "</select></td>\n";
+			    break;
+		    case "ba_accountname":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		    case "ba_bankname":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		    case "ba_accountnumber":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		    case "ba_accounttype":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		    case "ba_branchcode":
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		    case "ra_paymenttype":
+	  		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"radio\" name=\"cf".$formv[0]."\" value=\"".$formv[3]."\"";
+	          if (($checkoutturingerror==true) || ($checkoutcouponerror>0))
+	          {
+	  		    if ($$varval==$formv[3])
+	  		      print " checked=\"checked\" ";
+	          }
+	          else
+	          {
+	  		    if (strtolower($formv[4])=="checked")
+	  		      print " checked=\"checked\" ";
+	          }
+	  		    print " onClick=\"paymenttypeclicked();\"></td>\n";
+			    break;
+		    default:
+		      if (substr($formv[0],0,3)=="ta_")
+		  	    print "<td   class=\"cwhoiscontact\"><textarea class=\"cwhoiscontact\" name=\"cf".$formv[0]."\" cols=\"40\" rows=\"5\">".$$varval."</textarea></td>\n";
+		      if (substr($formv[0],0,3)=="cb_")
+		      {
+	  		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"checkbox\" name=\"cf".$formv[0]."\" value=\"".$formv[3]."\"";
+	          if (($checkoutturingerror==true) || ($checkoutcouponerror>0))
+	          {
+	  		      if ($$varval==$formv[3])
+	  		        print " checked=\"checked\" ";
+	          }
+	          else
+	          {
+	  		      if (strtolower($formv[4])=="checked")
+	  		        print " checked=\"checked\" ";
+	          }
+	  		    print "></td>\n";
+					}
+		      if (substr($formv[0],0,3)=="ra_")
+		      {
+	  		    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"radio\" name=\"cf".$formv[0]."\" value=\"".$formv[3]."\"";
+	          if (($checkoutturingerror==true) || ($checkoutcouponerror>0))
+	          {
+	  		    if ($$varval==$formv[3])
+	  		      print " checked=\"checked\" ";
+	          }
+	          else
+	          {
+	  		      if (strtolower($formv[4])=="checked")
+	  		        print " checked=\"checked\" ";
+	          }
+	  		    print "></td>\n";
+					}
+		      if (substr($formv[0],0,3)=="dm_")
+		      {
+	          print "<td   class=\"cwhoiscontact\"><select class=\"cwhoiscontact\" name=\"cf".$formv[0]."\">\n";
+	          for ($j=3;$j<count($formv);$j++)
+	          {
+	            print "<option value=\"".$formv[$j]."\"";
+	            if ($$varval==$formv[$j]) print " selected";
+	            print ">".$formv[$j]."</option>\n";
+	          }
+	          print "</select></td>\n";
+		      }
+		      if ((substr($formv[0],0,3)!="ta_") && (substr($formv[0],0,3)!="cb_") && (substr($formv[0],0,3)!="ra_") && (substr($formv[0],0,3)!="dm_"))
+			    print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+			    break;
+		  }
+			print "  </tr>\n";
+		}
+	} else {
+		for ($k=0;$k<count($cform);$k++) {
+			$formv=explode(",",$cform[$k]);
+			$varval="cf".$formv[0];
+			print "  <tr>\n";
+			print "  <td   class=\"cwhoiscontact\"><p class=\"cwhoiscontact\">\n";
+			print "  ".$formv[1];
+			if ($formv[2]!="") print "*";
+			print "</p></td>";
+			switch (strtolower($formv[0]))
+			{
+				case "password":
+					print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"password\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+					break;
+				case "verifypassword":
+					print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"password\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+					break;
+				case "curr":
+					print "<td   class=\"cwhoiscontact\"><select class=\"cwhoiscontact\" name=\"cf".$formv[0]."\">\n";
+					for ($j=3;$j<count($formv);$j++)
+					{
+						print "<option value=\"".$formv[$j]."\"";
+						if ($$varval==$formv[$j]) print " selected";
+						print ">".$formv[$j]."</option>\n";
+					}
+					print "</select></td>\n";
+					break;
+					case "email":
+						print "<td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"cf".$formv[0]."\" value=\"".$$varval."\" maxlength=\"50\" size=\"35\"></td>\n";
+						break;
+				default:
+					break;
+			}
+			print "  </tr>\n";
+		}
 	}
-	
+
 /*
 	// If mollieideal used then get bank code (this list may need updating once in a while
 	if (false!==strpos(strtolower($payprocess),"mollieideal"))
@@ -2941,7 +2997,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
         print " <option value=\"$bankcode\">$bankname</option>\n";
   	  }
   	  else
-  	    $pos++;  
+  	    $pos++;
 	  }
 	  while ($pos<strlen($response));
 	  print " </select>\n";
@@ -2949,17 +3005,17 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
 	  print " </tr>\n";
 	}
 	*/
-	
+
   // If more than one payment processor selected then offer choice.
   $pprocs=explode(",",$payprocess);
   $pprocsname=explode(",",$payprocessnames);
-  if (count($pprocs)>1)
+  if (count($pprocs)>0)
   {
 	  print "  <tr>\n";
 	  print "  <td   class=\"cwhoiscontact\"><p class=\"cwhoiscontact\">\n";
 	  print "  ".$lang['PayMethod'];
 	  print " </p></td><td   class=\"cwhoiscontact\">\n";
-	  print " <select class=\"cwhoiscontact\" size=\"1\" name=\"paymethod\">\n";
+	  print " <select disabled class=\"cwhoiscontact\" size=\"1\" name=\"paymethod\">\n";
     for ($k=0;$k<count($pprocs);$k++)
     {
 		  print " <option value=\"".$pprocs[$k]."\">";
@@ -2973,6 +3029,16 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
 	  print " </td>\n";
 	  print " </tr>\n";
   }
+	// print "<tr>\n";
+	// print "<td class='cwhoiscontact'>\n";
+	// print "<p class='cwhoiscontact'> Currency</p>\n";
+	// print "</td>\n";
+	// print "<td class='cwhoiscontact'>\n";
+	// print "<select class='cwhoiscontact' name='ipaycurr'>\n";
+	// print "<option value='KES'>KES</option><option value='USD'>USD</option>\n";
+	// print "</select>\n";
+	// print "</td>\n";
+	// print "</tr>\n";
   if ($checkoutcouponerror>0)
   {
     print "<script language=\"JavaScript\">\n";
@@ -2980,7 +3046,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
     print "document.contactform.cfcouponcode.focus()\n";
     print "// - JavaScript - -->\n";
     print "</script>\n";
-  }  
+  }
   // If required display turing code
   if ($CheckoutTuring)
   {
@@ -2992,7 +3058,7 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
     }
     print "  <tr>\n";
 	  print "  <td   class=\"cwhoiscontact\"><p class=\"cwhoiscontact\">".$lang['TuringCode']."*</p></td><td   class=\"cwhoiscontact\"><input class=\"cwhoiscontact\" type=\"text\" name=\"turing\" id=\"turing\" size=\"10\">&nbsp;<img class=\"cwhoiscontact\" id=\"turingimage\" name=\"turingimage\" src=\"".$FilePath."turingimagecw.php\" align=\"absmiddle\" width=\"60\" height=\"30\"></td>\n";
-	  print "  </tr>\n";    
+	  print "  </tr>\n";
     if ($checkoutturingerror==true)
     {
       print "<script language=\"JavaScript\">\n";
@@ -3003,7 +3069,8 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
     }
   }
 
-  
+	print "<br/>";
+
   print "  <tr>\n";
 	print "  <td   class=\"cwhoiscontact\">&nbsp;</td><td   class=\"cwhoiscontact\" align=\"right\"><input class=\"cwhoiscontact\" type=\"submit\" name=\"button2\" value=\" ".$lang['CheckoutButton']." \" ></td>\n";
 	print "  </tr>\n";
@@ -3014,9 +3081,9 @@ if (($cwaction=="checkout") || ($cwaction=="addout"))
 	  print "<!-- JavaScript\n";
 	  print "paymenttypeclicked()\n";
   	print "// - JavaScript - -->\n";
-	  print "</script>\n";		
+	  print "</script>\n";
 	}
-	
+
 // Replacement form and validation code ends here
 //////////////////////////////////////////////////////////////////////////////////
 	print "  </form></div>\n";
@@ -3085,7 +3152,8 @@ if ($cwaction=="order")
     }
   }
   // Create text for order details and get totals.
-  $total=0.00;
+  // $total=0.00;
+	$total = $_SESSION['ipaytotal'];
   $recurringtotal=0.00;
   if ($HTMLEmail=="Y")
   {
@@ -3136,7 +3204,7 @@ if ($cwaction=="order")
 			  {
 		      $mailBody.="<tr><td   class=\"cwhoisemail\"><p class=\"cwhoisemail\">&nbsp;Payment Method</p></td>\n";
 		      $mailBody.="<td   class=\"cwhoisemail\"><p class=\"cwhoisemail\">$paymethod</p></td></tr>\n";
-				}  
+				}
 	    }
       else
       {
@@ -3171,7 +3239,7 @@ if ($cwaction=="order")
   }
   if ($HTMLEmail=="Y")
   {
-    $styles.="<style type=\"text/css\">\n";    
+    $styles.="<style type=\"text/css\">\n";
     $styles.="p.cwhoisemail {\n";
     $styles.="	font-family: Arial, Helvetica, sans-serif;\n";
     $styles.="	font-size: 10pt;\n";
@@ -3192,7 +3260,7 @@ if ($cwaction=="order")
     $styles.="table.cwhoisemail {\n";
     $styles.="    position: static;\n";
     $styles.="}\n";
-    $styles.="</style>\n";    
+    $styles.="</style>\n";
     $mailBody ="<!DOCTYPE HTML PUBLIC \"-//W3C//DTD W3 HTML//EN\">\n<HTML>\n<HEAD>\n".$styles."<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=iso-8859-1\">\n<TITLE>$subject</TITLE>\n</HEAD>\n<BODY>\n<p class=\"cwhoisemail\">".$mailBody;
     $mailBody.="</p></BODY>\n</HTML>\n";
   }
@@ -3203,22 +3271,22 @@ if ($cwaction=="order")
     if ($formname[$j]=="cc_number")
       $ccnumber=$formvalue[$j];
     if ($formname[$j]=="ba_accountnumber")
-      $banumber=$formvalue[$j];      
+      $banumber=$formvalue[$j];
   }
   // If required create a file copy of the order details and store on server
-  if ($orderfolder!="")	
-  {  
+  if ($orderfolder!="")
+  {
     if ($HTMLEmail=="Y")
       $fname=$orderfolder.$ordnum.".html";
     else
-      $fname=$orderfolder.$ordnum.".txt";      
+      $fname=$orderfolder.$ordnum.".txt";
     $fh=fopen($fname,"w");
     if ($fh!=false)
     {
       fputs($fh,$mailBody);
-      fclose($fh);      
+      fclose($fh);
     }
-  }  
+  }
   if ($ccnumber!="")
     $mailBody=str_replace($ccnumber,"************".substr($ccnumber,strlen($ccnumber)-4),$mailBody);
   if (($banumber!="") && (strlen($banumber>6)))
@@ -3244,7 +3312,7 @@ if ($cwaction=="order")
       $mailBody.="Time of first visit: ".$reflinklokvals[1]." ".$reflinklokvals[2]."\n";
       $mailBody.="Entry page first visit: ".$reflinklokvals[3]."\n";
       $mailBody.="Referer first visit: ".$reflinklokvals[4]."\n";
-    }    
+    }
   }
   if ((isset($sesreflinklokcookie)) && ($sesreflinklokcookie!=""))
   {
@@ -3257,7 +3325,7 @@ if ($cwaction=="order")
       $mailBody.="Entry page this session: ".$sesreflinklokvals[3]."<br>\n";
       $mailBody.="Referer this session: ".$sesreflinklokvals[4]."<br>\n\n";
     }
-    else  
+    else
     {
       $mailBody.="Date of session start: ".$sesreflinklokvals[0]." ".$sesreflinklokvals[2]."\n";
       $mailBody.="Time of session start: ".$sesreflinklokvals[1]." ".$sesreflinklokvals[2]."\n";
@@ -3265,10 +3333,10 @@ if ($cwaction=="order")
       $mailBody.="Referer this session: ".$sesreflinklokvals[4]."\n\n";
     }
   }
-    
+
   cwc_SendEmailOut($vendoremail, $vendoremail, $vendorcompany, $subject, $mailBody, $HTMLEmail);
   if ($vendoremail2!="")
-    cwc_SendEmailOut($vendoremail2, $vendoremail, $vendorcompany, $subject, $mailBody, $HTMLEmail);  	
+    cwc_SendEmailOut($vendoremail2, $vendoremail, $vendorcompany, $subject, $mailBody, $HTMLEmail);
 	// Send email to buyer confirming order.
   $subject=$cemail[0];
   $mailBody="";
@@ -3297,7 +3365,7 @@ if ($cwaction=="order")
         	$mailBody.=$formname[$j].": ".$formvalue[$j]."\n";
       }
 		  if ($HTMLEmail=="Y")
-		    $mailBody.="</table><p class=\"cwhoisemail\">\n";      
+		    $mailBody.="</table><p class=\"cwhoisemail\">\n";
       continue;
     }
     $lne=str_replace("!!!vendorcompany!!!",$vendorcompany,$lne);
@@ -3330,14 +3398,14 @@ if ($cwaction=="order")
     $mailBody=str_replace($ccnumber,"************".substr($ccnumber,strlen($ccnumber)-4),$mailBody);
   if (($banumber!="") && (strlen($banumber>6)))
     $mailBody=str_replace($banumber,"************".substr($banumber,strlen($banumber)-4),$mailBody);
-  cwc_SendEmailOut($cfemail, $vendoremail, $vendorcompany, $subject, $mailBody, $HTMLEmail);	
-	
+  cwc_SendEmailOut($cfemail, $vendoremail, $vendorcompany, $subject, $mailBody, $HTMLEmail);
+
 	// Send SMS via Clickatel if required.
 	if (($clickatell_api_id!="") && ($clickatell_user!="") && ($clickatell_password!="") && ($clickatell_to!=""))
 	{
-	  $fh=fopen("http://api.clickatell.com/http/sendmsg?api_id=".$clickatell_api_id."&user=".$clickatell_user."&password=".$clickatell_password."&to=".$clickatell_to."&from=".$clickatell_to."&text=".urlencode("cWhois order ".$ordnum." from ".$cfname." (".$cfemail.")"),"rb");
-	}  
-	// Add cart variables to session data in case an externalapp needs them 
+	  $fh=fopen("http://api.clickatell.com/http/sendmsg?api_id=".$clickatell_api_id."&user=".$clickatell_user."&password=".$clickatell_password."&to=".$clickatell_to."&from=".$clickatell_to."&text=".urlencode("cWhois order ".$ordnum." from ".$cffname." ".$cflname." (".$cfemail.")"),"rb");
+	}
+	// Add cart variables to session data in case an externalapp needs them
   $_SESSION['carttax']=$carttax;
   $_SESSION['carttaxglobal']=$carttaxglobal;
   $_SESSION['cartrecurringtaxglobal']=$cartrecurringtaxglobal;
@@ -3369,16 +3437,62 @@ if ($cwaction=="order")
  	{
    	$formv=explode(",",$cform[$k]);
  	  $_SESSION[$formv[0]]=$_REQUEST["cf".$formv[0]];
- 	} 
+ 	}
   if ($UseMySQL)
   {
-		StoreOrderMysql();
+	//StoreOrderMysql();
+  	global $ordnum,$cffname, $cflname, $cforg ,$cfstr1,$cfcity,$cfstate,
+    	$cfcountry,$cftel,$cfcurr,$cfemail,$orderdate,$cartdomain, $cfpassword,
+    	$cartdomainopt,$cartdomaintime,$carthosting,$cartsubtotal,$carttotal;
+	//
+  //   $orderdate=date("Y-m-d h:i:s");
+	// //$expirydate = date("Y-m-d h:i:s", strtotime('+1 years'));
+	//
+  //   $servername = "mysql.s801.sureserver.com";
+	// $username = "beta";
+	// $password = "K@ribu098!";
+  //   $dbname = 'slashdotpro_beta';
+	//
+  //   $conn = mysqli_connect($servername, $username, $password, $dbname);
+
+	// Check connection
+	if (!$conn) {
+    	die("Connection failed: " . mysqli_connect_error());
+	}
+
+    $Query = "INSERT INTO domaincart_user (fname, lname, email, password, phone, address, city, country, organisation) VALUES ('".$cffname."','".$cflname."','".$cfemail."','".$cfpassword."','".$cftel."','".$cfstr1."','".$cfcity."','".$cfcountry."','".$cforg == "" ? NULL : $cforg."')";
+
+    if ($conn->query($Query) === TRUE) {
+    	echo "New record created successfully";
+	} else {
+    	echo "Error: " . $sql . "<br>" . $conn->error;
+	}
   }
+
 	// Now get payment processed. Use chosen system
-  $_SESSION['sessionended']="1";
-  if ($DestroySession==true)
-    session_destroy();
- 
+  // $_SESSION['sessionended']="1";
+  //if ($DestroySession==true)
+    //session_destroy();
+
+
+	// iPay Payment Processing
+	if (strcasecmp($payprocess,"iPay")==0) {
+			if (!isset($cfemail)) $cfemail = $_SESSION['email'];
+			if (!isset($cfcurr)) $cfcurr = $_SESSION['ses_csymbol'];
+			if (!isset($cftel)) $cftel = $_SESSION['phone'];
+      $datastring = $live . $oid . $inv . $total . $cftel . $cfemail . $vid . $cfcurr . $cbk . $cst . $crl;
+      $hash_string = hash_hmac('sha1', $datastring, $hsh);
+      $hash = $hash_string;
+      print "<script language=\"JavaScript\" type=\"text/javascript\">\n";
+      print "<!-- JavaScript\n";
+      print "window.top.location.replace(\"https://payments.ipayafrica.com/v3/ke?live=$live&oid=$oid&inv=$inv&ttl=$total&tel=$cftel&eml=$cfemail&vid=$vid&curr=$cfcurr&autopay=$autopay&cbk=$cbk&cst=$cst&crl=$crl&hsh=$hash\")\n";
+      print "// - JavaScript - -->\n";
+      print "</script>\n";
+
+	}
+
+	// OTHER PAYMENT GATEWAYS...SKIP TO LINE 4517
+
 	// 2checkout.com payment processing
 	if (strcasecmp($payprocess,"2CO")==0)
 	{
@@ -3408,7 +3522,7 @@ if ($cwaction=="order")
         print "<input type=\"hidden\" name=\"merchant_order_id\" value=\"$ordnum\">\n";
 	      if ($demo2co=="Y")
           print "<input type=\"hidden\" name=\"demo\" value=\"Y\">\n";
-        print "<input type=\"hidden\" name=\"card_holder_name\" value=\"$cfname\">\n";
+        print "<input type=\"hidden\" name=\"card_holder_name\" value=\"$cffname\">\n";
         print "<input type=\"hidden\" name=\"street_address\" value=\"$cfstr1\">\n";
         print "<input type=\"hidden\" name=\"street_address2\" value=\"$cfstr2\">\n";
         print "<input type=\"hidden\" name=\"city\" value=\"$cfcity\">\n";
@@ -3426,7 +3540,7 @@ if ($cwaction=="order")
 		if (($recurringtotal==0) || ($recurringhandled==0))
     {
     	// For new 2CO rules we need to specify each product ordered
-//*************************************************************************
+			//*************************************************************************
       $cco_domain=explode(",",$cartdomain);
       $cco_domainopt=explode(",",$cartdomainopt);
       $cco_domaintime=explode(",",$cartdomaintime);
@@ -3511,7 +3625,7 @@ if ($cwaction=="order")
 	      print "<input type=\"hidden\" name=\"c_tangible_$k\" value=\"N\">\n";
       }
       // Prepopulate contact details
-      print "<input type=\"hidden\" name=\"card_holder_name\" value=\"$cfname\">\n";
+      print "<input type=\"hidden\" name=\"card_holder_name\" value=\"$cffname\">\n";
       print "<input type=\"hidden\" name=\"street_address\" value=\"$cfstr1\">\n";
       print "<input type=\"hidden\" name=\"street_address2\" value=\"$cfstr2\">\n";
       print "<input type=\"hidden\" name=\"city\" value=\"$cfcity\">\n";
@@ -3520,7 +3634,7 @@ if ($cwaction=="order")
       print "<input type=\"hidden\" name=\"country\" value=\"$cfcountry\">\n";
       print "<input type=\"hidden\" name=\"email\" value=\"$cfemail\">\n";
       print "<input type=\"hidden\" name=\"phone\" value=\"$cftel\">\n";
-      
+
       print "</form>\n";
       print "<script language=\"JavaScript\">\n";
       print "document.order2co.submit()\n";
@@ -3528,82 +3642,82 @@ if ($cwaction=="order")
 //*************************************************************************
     }
 	}
-	// PayPal payment processing
-	if (strcasecmp($payprocess,"PayPal")==0)
-	{
-		// See if we need to do one off or recurring billing
-		if ($recurringtotal>0)
-		{
-			$recurringtotal=sprintf("%01.".$decimalplaces."f",$recurringtotal);
-      print "<form action=\"https://www.paypal.com/cgi-bin/webscr\" method=\"post\" name=\"paypalbuy\">\n";
-      print "<input type=\"hidden\" name=\"cmd\" value=\"_xclick-subscriptions\">\n";
-      print "<input type=\"hidden\" name=\"business\" value=\"$paypalemail\">\n";
-      print "<input type=\"hidden\" name=\"item_name\" value=\"$paypaldesc\">\n";
-      print "<input type=\"hidden\" name=\"item_number\" value=\"$ordnum\">\n";
-      print "<input type=\"hidden\" name=\"no_note\" value=\"1\">\n";
-      print "<input type=\"hidden\" name=\"currency_code\" value=\"$paypalcurrency\">\n";
-      print "<input type=\"hidden\" name=\"return\" value=\"$paypalreturn\">\n";
-      print "<input type=\"hidden\" name=\"cancel_return\" value=\"$paypalcancel\">\n";
-      print "<input type=\"hidden\" name=\"invoice\" value=\"$ordnum\">\n";
-      print "<input type=\"hidden\" name=\"a1\" value=\"$total\">\n";
-      print "<input type=\"hidden\" name=\"p1\" value=\"1\">\n";
-      print "<input type=\"hidden\" name=\"t1\" value=\"M\">\n";
-      print "<input type=\"hidden\" name=\"a3\" value=\"$recurringtotal\">\n";
-      print "<input type=\"hidden\" name=\"p3\" value=\"1\">\n";
-      print "<input type=\"hidden\" name=\"t3\" value=\"M\">\n";
-      print "<input type=\"hidden\" name=\"src\" value=\"1\">\n";
-      print "<input type=\"hidden\" name=\"sra\" value=\"1\">\n";
-      print "<input type=\"hidden\" name=\"custom\" value=\"".session_id()."\">\n";      
-
-//      print "<input type=\"hidden\" name=\"no_shipping\" value=\"0\">\n";
-//      print "<input type=\"hidden\" name=\"email\" value=\"$cfemail\">\n";
-//      print "<input type=\"hidden\" name=\"address1\" value=\"$cfstr1\">\n";
-//      print "<input type=\"hidden\" name=\"address2\" value=\"$cfstr2\">\n";
-//      print "<input type=\"hidden\" name=\"city\" value=\"$cfcity\">\n";
-//      print "<input type=\"hidden\" name=\"state\" value=\"$cfstate\">\n";
-//      print "<input type=\"hidden\" name=\"zip\" value=\"$cfzip\">\n";
-//      print "<input type=\"hidden\" name=\"country\" value=\"$cfcountry\">\n";
-
-      print "</form>\n";
-		  print "<script language=\"JavaScript\">\n";
-		  print "<!-- JavaScript\n";
-		  print "document.paypalbuy.submit()\n";
-		  print "// - JavaScript - -->\n";
-		  print "</script>\n";
-		}
-		else
-		{
-      print "<form action=\"https://www.paypal.com/cgi-bin/webscr\" method=\"post\" name=\"paypalbuy\">\n";
-      print "<input type=\"hidden\" name=\"cmd\" value=\"_xclick\">\n";
-      print "<input type=\"hidden\" name=\"business\" value=\"$paypalemail\">\n";
-      print "<input type=\"hidden\" name=\"item_name\" value=\"$paypaldesc\">\n";
-      print "<input type=\"hidden\" name=\"item_number\" value=\"$ordnum\">\n";
-      print "<input type=\"hidden\" name=\"amount\" value=\"$total\">\n";
-      print "<input type=\"hidden\" name=\"no_note\" value=\"1\">\n";
-      print "<input type=\"hidden\" name=\"currency_code\" value=\"$paypalcurrency\">\n";
-      print "<input type=\"hidden\" name=\"return\" value=\"$paypalreturn\">\n";
-      print "<input type=\"hidden\" name=\"cancel_return\" value=\"$paypalcancel\">\n";
-      print "<input type=\"hidden\" name=\"invoice\" value=\"$ordnum\">\n";
-      print "<input type=\"hidden\" name=\"custom\" value=\"".session_id()."\">\n";      
-
-//      print "<input type=\"hidden\" name=\"no_shipping\" value=\"0\">\n";
-//      print "<input type=\"hidden\" name=\"email\" value=\"$cfemail\">\n";
-//      print "<input type=\"hidden\" name=\"address1\" value=\"$cfstr1\">\n";
-//      print "<input type=\"hidden\" name=\"address2\" value=\"$cfstr2\">\n";
-//      print "<input type=\"hidden\" name=\"city\" value=\"$cfcity\">\n";
-//      print "<input type=\"hidden\" name=\"state\" value=\"$cfstate\">\n";
-//      print "<input type=\"hidden\" name=\"zip\" value=\"$cfzip\">\n";
-//      print "<input type=\"hidden\" name=\"country\" value=\"$cfcountry\">\n";
-
-      print "</form>\n";
-		  print "<script language=\"JavaScript\">\n";
-		  print "<!-- JavaScript\n";
-		  print "document.paypalbuy.submit()\n";
-		  print "// - JavaScript - -->\n";
-		  print "</script>\n";
-		}
-    // End of mod 
-	}
+// 	// PayPal payment processing
+// 	if (strcasecmp($payprocess,"PayPal")==0)
+// 	{
+// 		// See if we need to do one off or recurring billing
+// 		if ($recurringtotal>0)
+// 		{
+// 			$recurringtotal=sprintf("%01.".$decimalplaces."f",$recurringtotal);
+//       print "<form action=\"https://www.paypal.com/cgi-bin/webscr\" method=\"post\" name=\"paypalbuy\">\n";
+//       print "<input type=\"hidden\" name=\"cmd\" value=\"_xclick-subscriptions\">\n";
+//       print "<input type=\"hidden\" name=\"business\" value=\"$paypalemail\">\n";
+//       print "<input type=\"hidden\" name=\"item_name\" value=\"$paypaldesc\">\n";
+//       print "<input type=\"hidden\" name=\"item_number\" value=\"$ordnum\">\n";
+//       print "<input type=\"hidden\" name=\"no_note\" value=\"1\">\n";
+//       print "<input type=\"hidden\" name=\"currency_code\" value=\"$paypalcurrency\">\n";
+//       print "<input type=\"hidden\" name=\"return\" value=\"$paypalreturn\">\n";
+//       print "<input type=\"hidden\" name=\"cancel_return\" value=\"$paypalcancel\">\n";
+//       print "<input type=\"hidden\" name=\"invoice\" value=\"$ordnum\">\n";
+//       print "<input type=\"hidden\" name=\"a1\" value=\"$total\">\n";
+//       print "<input type=\"hidden\" name=\"p1\" value=\"1\">\n";
+//       print "<input type=\"hidden\" name=\"t1\" value=\"M\">\n";
+//       print "<input type=\"hidden\" name=\"a3\" value=\"$recurringtotal\">\n";
+//       print "<input type=\"hidden\" name=\"p3\" value=\"1\">\n";
+//       print "<input type=\"hidden\" name=\"t3\" value=\"M\">\n";
+//       print "<input type=\"hidden\" name=\"src\" value=\"1\">\n";
+//       print "<input type=\"hidden\" name=\"sra\" value=\"1\">\n";
+//       print "<input type=\"hidden\" name=\"custom\" value=\"".session_id()."\">\n";
+//
+// //      print "<input type=\"hidden\" name=\"no_shipping\" value=\"0\">\n";
+// //      print "<input type=\"hidden\" name=\"email\" value=\"$cfemail\">\n";
+// //      print "<input type=\"hidden\" name=\"address1\" value=\"$cfstr1\">\n";
+// //      print "<input type=\"hidden\" name=\"address2\" value=\"$cfstr2\">\n";
+// //      print "<input type=\"hidden\" name=\"city\" value=\"$cfcity\">\n";
+// //      print "<input type=\"hidden\" name=\"state\" value=\"$cfstate\">\n";
+// //      print "<input type=\"hidden\" name=\"zip\" value=\"$cfzip\">\n";
+// //      print "<input type=\"hidden\" name=\"country\" value=\"$cfcountry\">\n";
+//
+//       print "</form>\n";
+// 		  print "<script language=\"JavaScript\">\n";
+// 		  print "<!-- JavaScript\n";
+// 		  print "document.paypalbuy.submit()\n";
+// 		  print "// - JavaScript - -->\n";
+// 		  print "</script>\n";
+// 		}
+// 		else
+// 		{
+//       print "<form action=\"https://www.paypal.com/cgi-bin/webscr\" method=\"post\" name=\"paypalbuy\">\n";
+//       print "<input type=\"hidden\" name=\"cmd\" value=\"_xclick\">\n";
+//       print "<input type=\"hidden\" name=\"business\" value=\"$paypalemail\">\n";
+//       print "<input type=\"hidden\" name=\"item_name\" value=\"$paypaldesc\">\n";
+//       print "<input type=\"hidden\" name=\"item_number\" value=\"$ordnum\">\n";
+//       print "<input type=\"hidden\" name=\"amount\" value=\"$total\">\n";
+//       print "<input type=\"hidden\" name=\"no_note\" value=\"1\">\n";
+//       print "<input type=\"hidden\" name=\"currency_code\" value=\"$paypalcurrency\">\n";
+//       print "<input type=\"hidden\" name=\"return\" value=\"$paypalreturn\">\n";
+//       print "<input type=\"hidden\" name=\"cancel_return\" value=\"$paypalcancel\">\n";
+//       print "<input type=\"hidden\" name=\"invoice\" value=\"$ordnum\">\n";
+//       print "<input type=\"hidden\" name=\"custom\" value=\"".session_id()."\">\n";
+//
+// //      print "<input type=\"hidden\" name=\"no_shipping\" value=\"0\">\n";
+// //      print "<input type=\"hidden\" name=\"email\" value=\"$cfemail\">\n";
+// //      print "<input type=\"hidden\" name=\"address1\" value=\"$cfstr1\">\n";
+// //      print "<input type=\"hidden\" name=\"address2\" value=\"$cfstr2\">\n";
+// //      print "<input type=\"hidden\" name=\"city\" value=\"$cfcity\">\n";
+// //      print "<input type=\"hidden\" name=\"state\" value=\"$cfstate\">\n";
+// //      print "<input type=\"hidden\" name=\"zip\" value=\"$cfzip\">\n";
+// //      print "<input type=\"hidden\" name=\"country\" value=\"$cfcountry\">\n";
+//
+//       print "</form>\n";
+// 		  print "<script language=\"JavaScript\">\n";
+// 		  print "<!-- JavaScript\n";
+// 		  print "document.paypalbuy.submit()\n";
+// 		  print "// - JavaScript - -->\n";
+// 		  print "</script>\n";
+// 		}
+//     // End of mod
+// 	}
 
 	// Revecom / Paysystems processing
 	if (strcasecmp($payprocess,"Paysystems")==0)
@@ -3984,7 +4098,7 @@ if ($cwaction=="order")
 		$paysonemail=urlencode($paysonemail);
 		print "<script language=\"JavaScript\">\n";
 		print "<!-- JavaScript\n";
-//		print "window.location.replace(\"https://www.payson.se/prod/SendMoney/default.aspx?3m_m=2&Description=$ordnum&sellerEmail=$paysonemail&cost=$cost$paysonoption\")\n";
+		//		print "window.location.replace(\"https://www.payson.se/prod/SendMoney/default.aspx?3m_m=2&Description=$ordnum&sellerEmail=$paysonemail&cost=$cost$paysonoption\")\n";
     print "window.location.replace(\"https://www.payson.se/SendMoney/?De=$ordnum&Se=$paysonemail&cost=$cost&ShippingAmount=0%2c00$paysonoption\")\n";
 		print "// - JavaScript - -->\n";
 		print "</script>\n";
@@ -4035,7 +4149,7 @@ if ($cwaction=="order")
       $secpaydigest=md5($ordnum.$total.$secpayremotepass);
       print "<form name=\"secpayform\" method=\"post\" action=\"https://www.secpay.com/java-bin/ValCard\">\n";
       if ($secpayremotepass!="")
-        print "<input name=\"digest\" type=\"hidden\" value=\"$secpaydigest\" />\n";            
+        print "<input name=\"digest\" type=\"hidden\" value=\"$secpaydigest\" />\n";
       print "<input name=\"merchant\" type=\"hidden\" value=\"$secpaymerchant\" />\n";
       print "<input name=\"trans_id\" type=\"hidden\" value=\"$ordnum\" />\n";
       print "<input name=\"amount\" type=\"hidden\" value=\"$total\" />\n";
@@ -4059,7 +4173,7 @@ if ($cwaction=="order")
       $secpaydigest=md5($ordnum.$total.$secpayremotepass);
       print "<form name=\"secpayform\" method=\"post\" action=\"https://www.secpay.com/java-bin/ValCard\">\n";
       if ($secpayremotepass!="")
-        print "<input name=\"digest\" type=\"hidden\" value=\"$secpaydigest\" />\n";      
+        print "<input name=\"digest\" type=\"hidden\" value=\"$secpaydigest\" />\n";
       print "<input name=\"merchant\" type=\"hidden\" value=\"$secpaymerchant\" />\n";
       print "<input name=\"trans_id\" type=\"hidden\" value=\"$ordnum\" />\n";
       print "<input name=\"amount\" type=\"hidden\" value=\"$total\" />\n";
@@ -4091,7 +4205,7 @@ if ($cwaction=="order")
 	    print "document.malsform.submit()\n";
 	    print "// - JavaScript - -->\n";
 	    print "</script>\n";
-  }  	
+  }
   // Linkpoint payment processing
 	if (strcasecmp($payprocess,"Linkpoint")==0)
 	{
@@ -4110,7 +4224,7 @@ if ($cwaction=="order")
 	    print "document.lpform.submit()\n";
 	    print "// - JavaScript - -->\n";
 	    print "</script>\n";
-  } 
+  }
   // paymate.com.au payment processing
 	if (strcasecmp($payprocess,"Paymate")==0)
 	{
@@ -4131,13 +4245,13 @@ if ($cwaction=="order")
       print "<input name=\"item_price_1\" type=\"hidden\" value=\"".$total."\"/>\n";
       print "<input name=\"item_currency_1\" type=\"hidden\" value=\"".$gccurrency."\"/>\n";
       print "<input name=\"_charset_\" type=\"hidden\" value=\"utf-8\"/>\n";
-      print "</form>\n"; 	  
+      print "</form>\n";
       print "<script language=\"JavaScript\">\n";
 	    print "<!-- JavaScript\n";
 	    print "document.gcform.submit()\n";
 	    print "// - JavaScript - -->\n";
 	    print "</script>\n";
-  } 
+  }
   // Pagseguro payment processing
 	if (strcasecmp($payprocess,"Pagseguro")==0)
 	{
@@ -4150,13 +4264,14 @@ if ($cwaction=="order")
     print "<input type='hidden' name='item_quant_1' value='1' />\n";
     print "<input type='hidden' name='item_valor_1' value='".$total."' />\n";
     print "<input type='hidden' name='item_frete_1' value='0' />\n";
-    print "</form>\n";	  
+    print "</form>\n";
     print "<script language=\"JavaScript\">\n";
     print "<!-- JavaScript\n";
 //    print "document.pgform.submit()\n";
     print "// - JavaScript - -->\n";
     print "</script>\n";
 	}
+
   // Ideal payment processing
   if (strcasecmp($payprocess,"Ideal")==0)
   {    $totald=$total*100;
@@ -4173,7 +4288,7 @@ if ($cwaction=="order")
 	  if ($recurringtotal>0)
 		{
 			$recurringtotal=sprintf("%01.".$decimalplaces."f",$recurringtotal);
-			
+
       print "<form name=\"alertpayform\"method=\"post\" action=\"https://www.alertpay.com/PayProcess.aspx\" >\n";
       print "<input type=\"hidden\" name=\"ap_purchasetype\" value=\"subscription\"/>\n";
       print "<input type=\"hidden\" name=\"ap_merchant\" value=\"$alertpayid\"/>\n";
@@ -4187,7 +4302,7 @@ if ($cwaction=="order")
       print "<input type=\"hidden\" name=\"ap_trialtimeunit\" value=\"Month\"/>\n";
       print "<input type=\"hidden\" name=\"ap_trialperiodlength\" value=\"1\"/>\n";
       print "<input type=\"hidden\" name=\"ap_trialperiodcount\" value=\"0\"/>\n";
-      print "<input type=\"hidden\" name=\"ap_amount\" value=\"$recurringtotal\"/>\n";      
+      print "<input type=\"hidden\" name=\"ap_amount\" value=\"$recurringtotal\"/>\n";
       print "<input type=\"hidden\" name=\"ap_timeunit\" value=\"Month\"/>\n";
       print "<input type=\"hidden\" name=\"ap_periodlength\" value=\"1\"/>\n";
       print "<input type=\"hidden\" name=\"ap_periodcount\" value=\"0\"/>\n";
@@ -4222,7 +4337,7 @@ if ($cwaction=="order")
   }
   // Swreg payment processing
   if (strcasecmp($payprocess,"Swreg")==0)
-  { 
+  {
       print "<script language=\"JavaScript\">\n";
       print "<!-- JavaScript\n";
       print "window.location.replace(\"https://usd.swreg.org/cgi-bin/s.cgi?s=$swregid&p=$swregproduct&v=0&d=0&q=1&vp=$total\")\n";
@@ -4248,10 +4363,10 @@ if ($cwaction=="order")
     print "// - JavaScript - -->\n";
     print "</script>\n";
 	}
-	
+
 	// Global Digital Pay Processing
 	if (strcasecmp($payprocess,"GlobalDigitalPay")==0)
-	{  
+	{
     print "<form name=\"gdp\" method=\"post\" action=\"https://www.globaldigitalpay.com/process.htm\">\n";
     print "<input type=\"hidden\" name=\"member\" value=\"$gdp_member\">\n";
     print "<input type=\"hidden\" name=\"action\" value=\"service\">\n";
@@ -4263,7 +4378,7 @@ if ($cwaction=="order")
     print "<input type=\"hidden\" name=\"comments\" value=\"$ordnum\">\n";
     print "<input type=\"hidden\" name=\"success_url\" value=\"$gdp_success\">\n";
     print "<input type=\"hidden\" name=\"cancel_url\" value=\"$gdp_cancel\">\n";
-    print "</form>\n";	  
+    print "</form>\n";
     print "<script language=\"JavaScript\">\n";
     print "<!-- JavaScript\n";
     print "document.gdp.submit()\n";
@@ -4311,20 +4426,20 @@ if ($cwaction=="order")
     print "<input type='hidden' name='nome' value='".$pgdesc."' />\n";
     print "<input type='hidden' name='item_quant_1' value='1' />\n";
     print "<input type='hidden' name='item_frete_1' value='0' />\n";
-    print "</form>\n";	  
+    print "</form>\n";
     print "<script language=\"JavaScript\">\n";
     print "<!-- JavaScript\n";
     print "document.pgform.submit()\n";
     print "// - JavaScript - -->\n";
     print "</script>\n";
   }
-  
+
     // Mollie Ideal payment processing
   if (strcasecmp($payprocess,"MollieIdealOld")==0)
   {
     $mollieideal_reporturl=urlencode($mollieideal_reporturl);
-    $mollieideal_returnurl=urlencode($mollieideal_returnurl);    
-    $mollieideal_desc=urlencode($mollieideal_desc);    
+    $mollieideal_returnurl=urlencode($mollieideal_returnurl);
+    $mollieideal_desc=urlencode($mollieideal_desc);
     $totald=$total*100;
     // Call mollie to get bank URL to call
     $url="https://secure.mollie.nl/xml/ideal?a=fetch&partnerid=$mollieideal_partnerid&description=$mollieideal_desc&reporturl=$mollieideal_reporturl&returnurl=$mollieideal_returnurl&amount=$totald&bank_id=$cfmollieidealbank";
@@ -4343,7 +4458,7 @@ if ($cwaction=="order")
     print "window.location.replace(\"$bankurl\")\n";
     print "// - JavaScript - -->\n";
     print "</script>\n";
-  }   
+  }
 
   // Mollie Ideal payment processing
   if (strcasecmp($payprocess,"MollieIdeal")==0)
@@ -4379,13 +4494,13 @@ if ($cwaction=="order")
       echo "Mollie API call failed: " . htmlspecialchars($e->getMessage());
       exit;
     }
-  } 
-    
+  }
+
   // PayuLatam payment processing
   // http://docs.payulatam.com/en/web-checkout-integration/integrate/
   if (strcasecmp($payprocess,"PayuLatam")==0)
   {
-    $signature=md5("$payulapikey~$payulmerchantid~$ordnum~$total~$payulcurrency");  
+    $signature=md5("$payulapikey~$payulmerchantid~$ordnum~$total~$payulcurrency");
     print"<form name='payulform' method='post' action='https://stg.gateway.payulatam.com/ppp-web-gateway/'>\n";
     print"<input name='merchantId' type='hidden' value='$payulmerchantid'/>\n";
     print"<input name='accountId' type='hidden' value='$payulaccountid'/>\n";
@@ -4406,8 +4521,8 @@ if ($cwaction=="order")
     print "document.payulform.submit()\n";
     print "// - JavaScript - -->\n";
     print "</script>\n";
-  }  
-	    
+  }
+
   // AccessPay payment processing
   if (strcasecmp($payprocess,"AccessPay")==0)
   {
@@ -4424,7 +4539,7 @@ if ($cwaction=="order")
     print "document.upay_form.submit()\n";
     print "// - JavaScript - -->\n";
     print "</script>\n";
-  }  
+  }
 
 
   // Manual payment processing
@@ -4524,7 +4639,7 @@ function cwc_SendEmailOut($toemail, $fromemail, $fromname, $subject, $mailBody, 
   // Remove any comma in from name
   $fromname = str_replace(",", " ", $fromname);
   // Handle multiple email addresses
-  $sendtoemail=explode(",",$toemail);  
+  $sendtoemail=explode(",",$toemail);
   // If phpmailer setup then use it otherwise handle with PHP mail() function
   if ($UsePHPmailer == 1)
   {
@@ -4537,12 +4652,12 @@ function cwc_SendEmailOut($toemail, $fromemail, $fromname, $subject, $mailBody, 
     $mail = new PHPMailer();
     $mail->IsSMTP();
     $mail->Host = $EmailServer;
-		$mail->Port = $EmailPort;    
-    if ($EmailAuth=="0")				
+		$mail->Port = $EmailPort;
+    if ($EmailAuth=="0")
   		$mail->SMTPAuth = false;
 		else
   		$mail->SMTPAuth = true;
-  	if ($EmailServerSecurity!="")			
+  	if ($EmailServerSecurity!="")
   	  $mail->SMTPSecure = $EmailServerSecurity;
     $mail->Username = $EmailUsername;
     $mail->Password = $EmailPassword;
@@ -4561,9 +4676,9 @@ function cwc_SendEmailOut($toemail, $fromemail, $fromname, $subject, $mailBody, 
       $cushd=explode("\r\n",$Custom_Mail_Headers);
       for ($k=0;$k<count($cushd);$k++)
       {
-        if ($cushd[$k]!="")      
+        if ($cushd[$k]!="")
           $mail->AddCustomHeader($cushd[$k]);
-      }  
+      }
     }
     $mail->Send();
     return;
@@ -4582,23 +4697,23 @@ function cwc_SendEmailOut($toemail, $fromemail, $fromname, $subject, $mailBody, 
     if (PEAR::isError($mail))
     {
       echo($mail->getMessage());
-    }  
+    }
     return;
   }
-  // If still here then use PHP mail() function  
+  // If still here then use PHP mail() function
   $headers = "From: " . $fromname . " <" . $fromemail . ">\r\n";
   $headers.= "Reply-To: " . $fromname . " <" . $fromemail . ">\r\n";
   $headers.= "MIME-Version: 1.0\r\n";
   if ($htmlformat=="Y")
   {
     $headers .= "Content-type: text/html; charset=iso-8859-1\r\n";
-    $headers .= "Content-Transfer-Encoding: base64\r\n";	    
+    $headers .= "Content-Transfer-Encoding: base64\r\n";
     $mailBody=chunk_split(base64_encode($mailBody));
   }
   else
     $headers .= "Content-type: text/plain\r\n";
   if ($Custom_Mail_Headers!="")
-    $headers .= $Custom_Mail_Headers;    
+    $headers .= $Custom_Mail_Headers;
   if ($EmailHeaderNoSlashR == 1)
     $headers = str_replace("\r", "", $headers);
   for ($k=0; $k<count($sendtoemail); $k++)
@@ -4614,6 +4729,7 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
 {
 	global $lang,$cotextsize,$cotextcolor,$numhost,$csymbol,$csymbol2,$decimalplaces,$taxrate,$extrafee;
 	global $taxrate1,$taxrate2,$taxontax,$buyhosting,$buyregister,$buytransfer,$buyrenew;
+	global $ipaytotal;
   // Simple cart variables
   global $carttax,$cartsubtotal,$carttotal,$cartrecurringtotal,$cartdomain,$cartdomainopt,$cartdomaintime,$cartdomainprice;
   global $carthosting,$carthostingopt,$carthostinrecurr,$carthostingprice,$cartitemtotal,$cartitemrecurringtotal;
@@ -4697,26 +4813,16 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
     if ($_SESSION['removed'.$k]==False)
     {
 	      // Simple cart variables
-	      if ($cartdomain!="")
-	        $cartdomain.=",";
-	      if ($cartdomainopt!="")
-	        $cartdomainopt.=",";
-	      if ($cartdomaintime!="")
-	        $cartdomaintime.=",";
-	      if ($cartdomainprice!="")
-	        $cartdomainprice.=",";
-	      if ($carthosting!="")
-	        $carthosting.=",";
-	      if ($carthostingrecurr!="")
-          $carthostingrecurr.=",";
-	      if ($carthostingprice!="")
-	        $carthostingprice.=",";
-	      if ($carthostingsetup!="")
-	        $carthostingsetup.=",";
-	      if ($cartitemtotal!="")
-	        $cartitemtotal.=",";
-	      if ($cartitemrecurringtotal!="")
-	        $cartitemrecurringtotal.=",";
+	      if ($cartdomain!="") $cartdomain.=",";
+	      if ($cartdomainopt!="") $cartdomainopt.=",";
+	      if ($cartdomaintime!="") $cartdomaintime.=",";
+	      if ($cartdomainprice!="") $cartdomainprice.=",";
+	      if ($carthosting!="") $carthosting.=",";
+	      if ($carthostingrecurr!="") $carthostingrecurr.=",";
+	      if ($carthostingprice!="") $carthostingprice.=",";
+	      if ($carthostingsetup!="") $carthostingsetup.=",";
+	      if ($cartitemtotal!="") $cartitemtotal.=",";
+	      if ($cartitemrecurringtotal!="") $cartitemrecurringtotal.=",";
 	      $cartdomain.=$_SESSION['domain'.$k];
 	      $cartdomainopt.=$_SESSION['regtype'.$k];
         $cartdomaintime.=$_SESSION['regperiod'.$k];
@@ -4724,7 +4830,7 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
 	      $carthosting.=$_SESSION['hostdesc'.$k];
 	      $carthostingrecurr.=$_SESSION['hostrecurr'.$k];
 	      $carthostingprice.=$_SESSION['hostprice'.$k];
-	      $carthostingsetup.=$_SESSION['hostsetup'.$k];	      
+	      $carthostingsetup.=$_SESSION['hostsetup'.$k];
 	      // End
         $subtotal=0.00;
         $buf.="<tr>\n";
@@ -4795,12 +4901,12 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
           {
             $cartitemrecurringtotal.=sprintf("%01.".$decimalplaces."f",$hostprice);
             $buf.=sprintf("$csymbol%01.".$decimalplaces."f".$csymbol2,$hostprice);
-          }  
+          }
           else
           {
             $cartitemrecurringtotal.="0.00";
             $buf.="$csymbol"."0.00".$csymbol2;
-          }  
+          }
         }
         $buf.="</p></td >\n";
         $buf.="</tr>";
@@ -4811,7 +4917,7 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
   if ($extrafee>0)
   {
     $buf.="<tr>\n";
-    $buf.="<td  class=\"".$cssstyle."\" align=\"right\" colspan=\"3\">\n";    
+    $buf.="<td  class=\"".$cssstyle."\" align=\"right\" colspan=\"3\">\n";
     $buf.="<p class=\"".$cssstyle."\">".$lang['ExtraFee']."</p></td><td  class=\"".$cssstyle."\" align=\"right\"><p class=\"".$cssstyle."\">\n";
     $buf.=sprintf("$csymbol%01.".$decimalplaces."f".$csymbol2,$extrafee);
     $buf.="</p></td>\n";
@@ -4823,7 +4929,7 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
     $buf.="</TR>\n";
     $total=$total+$extrafee;
   }
-  
+
   // See if any coupon codes apply to order
   $coupondiscount="0.00";
   $coupondiscountrecurring="0.00";
@@ -4847,8 +4953,8 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
     $recurringtotal=$recurringtotal-$coupondiscountrecurring;
   }
   //End of coupon code
-  
-  
+
+
   // Subtotals
   if (($taxrate>0) || ($taxrate1>0) || ($taxrate2>0))
   {
@@ -4870,16 +4976,16 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
 	$cartsubtotal=$total;
 	$cartrecurringsubtotal=$recurringtotal;
   // End
-  
+
   // Global tax
   if ($taxrate>0)
   {
     $buf.="<tr>\n";
     $buf.="<td  class=\"".$cssstyle."\" align=\"right\" colspan=\"3\">\n";
     $buf.="<p class=\"".$cssstyle."\">".$lang['Tax']." ".$taxrate."%\n";
-    $buf.="</p></td>\n";    
+    $buf.="</p></td>\n";
     $buf.="\n";
-    $buf.="<td  class=\"".$cssstyle."\" align=\"right\"><p class=\"".$cssstyle."\">\n";    
+    $buf.="<td  class=\"".$cssstyle."\" align=\"right\"><p class=\"".$cssstyle."\">\n";
     $buf.=sprintf("$csymbol%01.".$decimalplaces."f".$csymbol2,$total*($taxrate/100));
     $buf.="</p></td>\n";
     $carttaxglobal=$total*($taxrate/100);
@@ -4902,9 +5008,9 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
     $buf.="<tr>\n";
     $buf.="<td  class=\"".$cssstyle."\" align=\"right\" colspan=\"3\"><p class=\"".$cssstyle."\">\n";
     $buf.=$lang['Tax1']." ".$taxrate1."%\n";
-    $buf.="</p></td>\n";    
+    $buf.="</p></td>\n";
     $buf.="\n";
-    $buf.="<td  class=\"".$cssstyle."\" align=\"right\"><p class=\"".$cssstyle."\">\n";    
+    $buf.="<td  class=\"".$cssstyle."\" align=\"right\"><p class=\"".$cssstyle."\">\n";
     $buf.=sprintf("$csymbol%01.".$decimalplaces."f".$csymbol2,$total*($taxrate1/100));
     $buf.="</p></td>\n";
     $carttax1=$total*($taxrate1/100);
@@ -4925,9 +5031,9 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
     $buf.="<tr>\n";
     $buf.="<td  class=\"".$cssstyle."\" align=\"right\" colspan=\"3\">\n";
     $buf.="<p class=\"".$cssstyle."\">".$lang['Tax2']." ".$taxrate2."%\n";
-    $buf.="</p></td>\n";    
+    $buf.="</p></td>\n";
     $buf.="\n";
-    $buf.="<td  class=\"".$cssstyle."\" align=\"right\"><p class=\"".$cssstyle."\">\n";    
+    $buf.="<td  class=\"".$cssstyle."\" align=\"right\"><p class=\"".$cssstyle."\">\n";
     if ($taxontax)
     {
 	    $buf.=sprintf("$csymbol%01.".$decimalplaces."f$csymbol2",$total*($taxrate2/100));
@@ -4964,8 +5070,8 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
   $buf.="<tr>\n";
   $buf.="<td  class=\"".$cssstyle."\" align=\"right\" colspan=\"3\">\n";
   $buf.="<b class=\"".$cssstyle."\">".$lang['Total']."</b></td>";
-  $buf.="\n";    
-  $buf.="<td  class=\"".$cssstyle."\" align=\"right\"><b class=\"".$cssstyle."\">\n";    
+  $buf.="\n";
+  $buf.="<td  class=\"".$cssstyle."\" align=\"right\"><b class=\"".$cssstyle."\">\n";
   $buf.=sprintf("$csymbol%01.".$decimalplaces."f$csymbol2",$total);
   $buf.="</b></td>";
   if ($recurringtotal>0.00)
@@ -4977,6 +5083,8 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
   $buf.="</tr>\n";
 	$total=sprintf("%01.".$decimalplaces."f",$total);
 	$recurringtotal=sprintf("%01.".$decimalplaces."f",$recurringtotal);
+
+
   // Simple cart variables
 	$carttotal=$total;
 	$cartrecurringtotal=$recurringtotal;
@@ -4999,6 +5107,12 @@ function orderdetailshtml(&$total,&$recurringtotal,$cssstyle)
   $cartcoupondiscount=sprintf("%01.".$decimalplaces."f",$coupondiscount);
   $cartcoupondiscountrecurring=sprintf("%01.".$decimalplaces."f",$coupondiscountrecurring);
   $cartcouponcode=$couponcode;
+	// $_SESSION['ttl'] = ;;
+	// $_SESSION['ipaytotal'] = $to
+	$_SESSION['ipaytotal'] = $total;
+	// setcookie("ipay_total", $total, time()+ 6000,'/');
+	// $_GET['cftotal'] = $_SESSION['ipaytotal'];
+
   // End
   return($buf);
 }
@@ -5010,7 +5124,7 @@ function orderdetailstext(&$total,&$recurringtotal)
   global $carttax,$cartsubtotal,$carttotal,$cartrecurringtotal,$cartdomain,$cartdomainopt,$cartdomaintime,$cartdomainprice;
   global $carthosting,$carthostingopt,$carthostinrecurr,$carthostingprice,$cartitemtotal,$cartitemrecurringtotal;
   global $carttaxrate,$carttaxrate1,$carttaxrate2,$cartextrafee,$cartrecurringsubtotal,$cartrecurringtax;
-  global $carttaxglobal,$cartrecurringtaxglobal,$carttax1,$cartrecurringtax1,$carttax2,$cartrecurringtax2,$carthostingsetup;   
+  global $carttaxglobal,$cartrecurringtaxglobal,$carttax1,$cartrecurringtax1,$carttax2,$cartrecurringtax2,$carthostingsetup;
   global $couponcode;
   $carttax=0.00;
   $carttaxglobal=0.00;
@@ -5034,7 +5148,7 @@ function orderdetailstext(&$total,&$recurringtotal)
   $carthostingprice="";
   $carthostingsetup="";
   $cartitemtotal="";
-  $cartitemrecurringtotal=""; 
+  $cartitemrecurringtotal="";
 	// End
 	$total=0.00;
 	$recurringtotal=0.00;
@@ -5103,8 +5217,8 @@ function orderdetailstext(&$total,&$recurringtotal)
 			    $recurringtotal=$recurringtotal+$_SESSION['hostprice'.$k];
 		    $subtotal=$subtotal+$_SESSION['hostsetup'.$k]+$_SESSION['hostprice'.$k];
 	    }
-      $cartitemtotal.=sprintf("%01.".$decimalplaces."f",$subtotal);   
-	    $subtotal=sprintf("%01.".$decimalplaces."f",$subtotal);	    
+      $cartitemtotal.=sprintf("%01.".$decimalplaces."f",$subtotal);
+	    $subtotal=sprintf("%01.".$decimalplaces."f",$subtotal);
 	    $orderdetails.=". ".$lang['Subtotal']." ".$csymbol.$subtotal.$csymbol2."\n";
       if ($recurringtotal>0.00)
       {
@@ -5130,7 +5244,7 @@ function orderdetailstext(&$total,&$recurringtotal)
   {
     $orderdetails.=$lang['Discount']." ".sprintf("$csymbol%01.".$decimalplaces."f".$csymbol2,$coupondiscount)."\n";
     $total=$total-$coupondiscount;
-    $recurringtotal=$recurringtotal-$coupondiscountrecurring;      
+    $recurringtotal=$recurringtotal-$coupondiscountrecurring;
   }
   //End of coupon code
 
@@ -5148,7 +5262,7 @@ function orderdetailstext(&$total,&$recurringtotal)
 		{
       $cartrecurringtaxglobal=$recurringtotal*($taxrate/100);
 			$recurringtotal=$recurringtotal+($recurringtotal*$taxrate/100);
-		}	
+		}
 	}
 	$pretax1total=$total;
 	$pretax1rtotal=$recurringtotal;
@@ -5160,34 +5274,34 @@ function orderdetailstext(&$total,&$recurringtotal)
 		if ($recurringtotal>0)
 		{
 			$recurringtotal=$recurringtotal+($recurringtotal*$taxrate1/100);
-      $cartrecurringtax1=$recurringtotal*($taxrate1/100);			
-		}	
+      $cartrecurringtax1=$recurringtotal*($taxrate1/100);
+		}
 	}
 	if ($taxrate2>0)
 	{
 		$orderdetails.=$lang['Tax2']." ".$taxrate2."%\n";
     if ($taxontax)
     {
-      $carttax2=$total*($taxrate2/100);      
+      $carttax2=$total*($taxrate2/100);
 	    $total=$total+($total*($taxrate2/100));
-    }  
+    }
 	  else
 	  {
       $carttax2=($pretax1total*($taxrate2/100));
 	    $total=$total+($pretax1total*($taxrate2/100));
-	  }  
+	  }
 		if ($recurringtotal>0)
     {
 	    if ($taxontax)
 	    {
         $cartrecurringtax2=$recurringtotal*($taxrate2/100);
 	      $recurringtotal=$recurringtotal+($recurringtotal*($taxrate2/100));
-	    }  
+	    }
 	    else
 	    {
-        $cartrecurringtax2=($pretax1rtotal*($taxrate2/100));	      
+        $cartrecurringtax2=($pretax1rtotal*($taxrate2/100));
 	      $recurringtotal=$recurringtotal+($pretax1rtotal*($taxrate2/100));
-	    }  
+	    }
 		}
 	}
 	$total=sprintf("%01.".$decimalplaces."f",$total);
@@ -5225,25 +5339,26 @@ function orderdetailstext(&$total,&$recurringtotal)
 // This is a function that can be used/modifed to add order details to a myslq table
 // To enable it copy the following setting lines to cwcconf.php and uncomment them.
 // You must ensure in your conatct form that you use the following field names for the address
-// name, orgn, str1, str2, city, state, zip, country, tel, fax, email 
-//$UseMySQL=true;
-//$DbHost="localhost"; // MySQL host
-//$DbUser="";          // MySQL username
-//$DbPassword="";      // MySQL password
-//$DbName="";          // MySQL database name
-//$DbTableName="";     // MySQL table name
+// name, orgn, str1, str2, city, state, zip, country, tel, fax, email
+ // $UseMySQL=true;
+// $DbHost=""; // MySQL host
+// $DbUser="";          // MySQL username
+// $DbPassword="!";      // MySQL password
+// $DbName="";          // MySQL database name
+// $DbOrders="";
+// $DbRegister=""   // MySQL table name
 
 function StoreOrderMysql()
 {
-	global $DbHost,$DbUser,$DbPassword,$DbName,$DbTableName;
-  global $ordnum,$cfname,$cforgn,$cfstr1,$cfstr2,$cfcity,$cfstate,$cfzip,$cfcountry,$cftel,$cffax,$cfemail,$orderdate,$cartdomain,$cartdomainopt,$cartdomaintime,$carthosting,$cartsubtotal,$carttotal,$carttax;
+	global $DbHost,$DbUser,$DbPassword,$DbName,$DbOrders,$DbRegister;
+  global $ordnum,$cffname, $cflname, $cforg ,$cfstr1,$cfcity,$cfstate,$cfzip,$cfcountry,$cftel,$cfcurr,$cfemail,$orderdate,$cartdomain,$cartdomainopt,$cartdomaintime,$carthosting,$cartsubtotal,$carttotal,$carttax;
   if (function_exists("mysqli_connect"))
   {
     $mysql_link=mysqli_connect($DbHost,$DbUser,$DbPassword);
     if ($mysql_link==0)
     {
-      print("Can't connect to MySQL server");
-      exit;
+      print("Can't connect to MySQL server: ". mysqli_connect_error());
+      exit();
     }
     $db=mysqli_select_db($mysql_link,$DbName);
     if ($db==false)
@@ -5252,14 +5367,25 @@ function StoreOrderMysql()
       mysqli_close($mysql_link);
       exit;
     }
-    $orderdate=date("d:m:Y");
-    $Query="INSERT INTO ".$DbTableName." (orderno,name,orgn,str1,str2,city,state,zip,country,tel,fax,email,orderdate,domain,domainoption,domaintime,hosting,subtotal,total,tax,ip) VALUES('".$ordnum."','".$cfname."','".$cforgn."','".$cfstr1."','".$cfstr2."','".$cfcity."','".$cfstate."','".$cfzip."','".$cfcountry."','".$cftel."','".$cffax."','".$cfemail."','".$orderdate."','".$cartdomain."','".$cartdomainopt."','".$cartdomaintime."','".$carthosting."','".$cartsubtotal."','".$carttotal."','".$carttax."','".trim(strtok($_SERVER['REMOTE_ADDR'],","))."')";
-    $mysql_result=mysqli_query($mysql_link,$Query);
+    $orderdate=date("Y-m-d h:i:s");
+		$expirydate = date("Y-m-d h:i:sa", strtotime('+1 years'));
+
+    // $Query="INSERT INTO ".$DbTableName." (orderno,name,orgn,str1,str2,city,state,zip,country,tel,fax,email,orderdate,domain,domainoption,domaintime,hosting,subtotal,total,tax,ip) VALUES('".$ordnum."','".$cfname."','".$cforgn."','".$cfstr1."','".$cfstr2."','".$cfcity."','".$cfstate."','".$cfzip."','".$cfcountry."','".$cftel."','".$cffax."','".$cfemail."','".$orderdate."','".$cartdomain."','".$cartdomainopt."','".$cartdomaintime."','".$carthosting."','".$cartsubtotal."','".$carttotal."','".$carttax."','".trim(strtok($_SERVER['REMOTE_ADDR'],","))."')";
+
+		$Query = "INSERT INTO ".$DbRegister." (fname, lname, enail, password, phone, address, city, country, organisation) VALUES ('".$cffname."','".$cflname."','".$cfemail."','".$cfpassword."','".$cftel."','".$cfstr1."','".$cfcity."','".$cfcountry."','".$cforg == "" ? NULL : $cforg."')";
+		//
+		// $Query .= "INSERT INTO ".$DbOrders." (orderId, UserID, NameServers, Amount, currency, OrderDate, ExpiryDate)
+		// VALUES ('".$ordernum."','".$userId."','".$cartdomain."',''".$carttotal."','".$cfcurr."','".$orderdate."', '".$expirydate."')";
+
+    // $mysql_result=mysqli_multi_query($mysql_link,$Query);
+
+		$mysql_result=mysqli_query($mysql_link,$Query);
+
     mysqli_close($mysql_link);
   }
   else
   {
-    $mysql_link=mysql_connect($DbHost,$DbUser,$DbPassword);
+		$mysql_link=mysql_connect($DbHost,$DbUser,$DbPassword);
     if ($mysql_link==0)
     {
       print("Can't connect to MySQL server");
@@ -5272,10 +5398,18 @@ function StoreOrderMysql()
       mysql_close($mysql_link);
       exit;
     }
-    $orderdate=date("d:m:Y");
-    $Query="INSERT INTO ".$DbTableName." (orderno,name,orgn,str1,str2,city,state,zip,country,tel,fax,email,orderdate,domain,domainoption,domaintime,hosting,subtotal,total,tax,ip) VALUES('".$ordnum."','".$cfname."','".$cforgn."','".$cfstr1."','".$cfstr2."','".$cfcity."','".$cfstate."','".$cfzip."','".$cfcountry."','".$cftel."','".$cffax."','".$cfemail."','".$orderdate."','".$cartdomain."','".$cartdomainopt."','".$cartdomaintime."','".$carthosting."','".$cartsubtotal."','".$carttotal."','".$carttax."','".trim(strtok($_SERVER['REMOTE_ADDR'],","))."')";
-    $mysql_result=mysql_query($Query,$mysql_link);
-    mysql_close($mysql_link);    
+		$orderdate=date("Y-m-d h:i:s");
+		$expirydate = date("Y-m-d h:i:sa", strtotime('+1 years'));
+
+		$Query = "INSERT INTO ".$DbRegister." (fname, lname, enail, password, phone, address, city, country, organisation) VALUES ('".$cffname."','".$cflname."','".$cfemail."','".$cfpassword."','".$cftel."','".$cfstr1."','".$cfcity."','".$cfcountry."','".$cforg == "" ? NULL : $cforg."')";
+
+		// $Query .= "INSERT INTO ".$DbOrders." (orderId, UserID, NameServers, Amount, currency, OrderDate, ExpiryDate)
+		// VALUES ('".$ordernum."','".$userId."','".$cartdomain."',''".$carttotal."','".$cfcurr."','".$orderdate."', '".$expirydate."')";
+		//
+    // $mysql_result=mysqli_multi_query($Query,$mysql_link);
+
+		$mysql_result=mysqli_query($mysql_link,$Query);
+    mysql_close($mysql_link);
   }
 }
 
@@ -5313,7 +5447,7 @@ function getdomainprices($dataarray,$dataarrayspecial,$ext,$hostid)
       return($return);
     }
   }
-  return("");  
+  return("");
 }
 
 function cwc_ValidateCoupon($couponcode,$total,$recurringtotal,&$coupondiscount,&$coupondiscountrecurring)
@@ -5332,7 +5466,7 @@ function cwc_ValidateCoupon($couponcode,$total,$recurringtotal,&$coupondiscount,
       if ($disval[strlen($disval)-1]=="%")
       {
         $disval=substr($disval,0,strlen($disval)-1);
-        $coupondiscount=$total*($disval/100);      
+        $coupondiscount=$total*($disval/100);
       }
       else
         $coupondiscount=$disval;
@@ -5340,7 +5474,7 @@ function cwc_ValidateCoupon($couponcode,$total,$recurringtotal,&$coupondiscount,
       {
         if ($total<trim($coupondata[1]))
           $coupondiscount=0;
-      }  
+      }
     }
     // Handle discount on recurring payment
     if (isset($coupondata[2]))
@@ -5349,7 +5483,7 @@ function cwc_ValidateCoupon($couponcode,$total,$recurringtotal,&$coupondiscount,
       if ($disval[strlen($disval)-1]=="%")
       {
         $disval=substr($disval,0,strlen($disval)-1);
-        $coupondiscountrecurring=$recurringtotal*($disval/100);      
+        $coupondiscountrecurring=$recurringtotal*($disval/100);
       }
       else
         $coupondiscountrecurring=$disval;
@@ -5357,7 +5491,7 @@ function cwc_ValidateCoupon($couponcode,$total,$recurringtotal,&$coupondiscount,
       {
         if ($recurringtotal<trim($coupondata[3]))
           $coupondiscountrecurring=0;
-      }  
+      }
     }
     // Check totals not going to be negative
     if ($coupondiscount>$total)
@@ -5374,9 +5508,9 @@ function cwc_ValidateCoupon($couponcode,$total,$recurringtotal,&$coupondiscount,
         {
           $coupondiscount=0;
           $coupondiscountrecurring=0;
-          return(2);        
+          return(2);
         }
-      }          
+      }
     }
     return(0);
   }

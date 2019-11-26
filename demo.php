@@ -1,10 +1,8 @@
-<?php include"cwcconf.php"; ?>
-<html>
-<head>
-<link href="cwhoisstyles.css" rel="stylesheet" type="text/css"> 
-<title>cWhois Domain Cart</title>
-</head>
-<body bgcolor="#FFFFFF">
-<?php include"cwhoiscart.php"; ?>
-</body>
-</html>
+<?php
+  session_start();
+  include "inludes/header.php";
+  include "login.php";
+  include"cwhoiscart.php";
+  include"includes/footer.php";
+
+?>
